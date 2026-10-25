@@ -517,3 +517,8 @@ textarea.code { font: 12px/1.5 var(--mono); background: var(--bg); }
   body.print-order .modal-card { box-shadow: none; width: auto; }
   body.print-order .modal-card button, body.print-order .modal-card select { display: none; }
 }
+
+/* миниатюры товаров: один размер везде (таблицы, список остатков, карточка заказа) */
+.thumb { width: 56px; height: 42px; flex: none; object-fit: cover; border-radius: var(--r); background: var(--stage); display: block; }
+.lowlist a { min-width: 0; }
+.lowlist span b, .olines span b { overflow-wrap: anywhere; }
