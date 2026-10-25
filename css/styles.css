@@ -279,3 +279,8 @@ select { font: inherit; padding: 8px 10px; border: 1px solid var(--line); border
   [data-reveal] { opacity: 1; transform: none; }
   html { scroll-behavior: auto; }
 }
+
+/* login form */
+input[type="email"], input[type="password"], input[type="text"] { font: inherit; padding: 12px 14px; border: 1px solid var(--ink); border-radius: var(--r); background: var(--surface); color: var(--ink); }
+input[type="email"]:focus, input[type="password"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+@media (max-width: 520px) { .header [data-price] { display: none; } .header .wrap { gap: 12px; } }

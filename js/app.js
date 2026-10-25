@@ -9,10 +9,11 @@
   const IMG = 'img/';
 
   /* ---------- состояние ---------- */
-  const KEY = 'nv-demo-v1';
+  const KEY = 'nv-demo-v2';
   let store = {};
   try { store = JSON.parse(localStorage.getItem(KEY)) || {}; } catch { store = {}; }
   store.role ||= 'guest';
+  store.user ||= null; /* почта вошедшего сотрудника */
   store.products ||= {};
   store.posts ||= {};
   store.users ||= USERS.map((u) => ({ ...u }));
@@ -21,6 +22,11 @@
 
   const S = { edit: false, sel: null, draft: null, touched: new Set(), img: 0 };
   const can = (k) => ROLES[store.role].can.includes(k);
+  const curUser = () => store.users.find((u) => u.email === store.user);
+  const START = { editor: '#/blog', catalog: '#/admin/products', admin: '#/admin/products' };
+  function loginUser(u) { store.user = u.email; store.role = u.role; persist(); }
+  function logout() { store.user = null; store.role = 'guest'; persist(); }
+  function loginAs(role) { if (role === 'guest') { logout(); return null; } const u = store.users.find((x) => x.role === role); if (u) loginUser(u); return u; }
 
   const getP = (id) => {
     const base = PRODUCTS.find((p) => p.id === id);
@@ -78,6 +84,7 @@
       <a class="brand" href="#/"><i></i>НОВИТА</a>
       <nav class="nav"><a class="${on('#/catalog')}" href="#/catalog">Каталог</a><a class="${on('#/blog')}" href="#/blog">Блог</a><a class="${on('#/contacts')}" href="#/contacts">Контакты</a></nav>
       <span class="tel">+7 (843) 512-00-08</span>
+      ${store.user ? '<button class="btn sm ghost" data-logout><i class="ph ph-sign-out"></i>Выйти</button>' : '<a class="btn sm ghost" href="#/login"><i class="ph ph-user"></i>Войти</a>'}
       <button class="btn primary sm" data-price>Запросить прайс</button>
     </div></header>`;
   }
@@ -92,11 +99,12 @@
     if (store.role === 'admin') links = lnk('#/admin/products', 'Товары', 'package') + lnk('#/blog', 'Статьи', 'article') + lnk('#/admin/users', 'Пользователи', 'users') + lnk('#/admin/integrations', 'Подключения', 'plugs-connected');
     const editable = (r.startsWith('#/p/') && can('catalog')) || (r.startsWith('#/blog/') && can('blog'));
     const toggle = editable ? `<button id="editToggle" class="${S.edit ? 'on' : ''}"><i class="ph ph-pencil-simple"></i>${S.edit ? 'Выйти из правки' : 'Режим правки'}</button>` : '';
-    return `<div class="adminbar"><div class="wrap"><b>${role.label}</b><span class="note">${role.note}</span><nav>${links}${toggle}</nav></div></div>`;
+    const me = curUser();
+    return `<div class="adminbar"><div class="wrap"><b>${role.label}</b>${me ? `<span class="mono" style="font-size:13px;color:#A9B3BB">${esc(me.email)}</span>` : ''}<span class="note">${role.note}</span><nav>${links}${toggle}</nav></div></div>`;
   }
   function dock() {
     const btn = (k) => `<button data-role="${k}" class="${store.role === k ? 'on' : ''}">${ROLES[k].label}</button>`;
-    return `<div class="dock"><span class="t">ДЕМО: смотреть сайт как</span><div class="row">${['guest', 'editor', 'catalog', 'admin'].map(btn).join('')}<button class="reset" data-reset>Сбросить</button></div></div>`;
+    return `<div class="dock"><span class="t">ДЕМО: быстрый вход под почтой</span><div class="row">${['guest', 'editor', 'catalog', 'admin'].map(btn).join('')}<button class="reset" data-reset>Сбросить</button></div></div>`;
   }
   function footer() {
     return `<footer class="footer"><div class="wrap">
@@ -215,7 +223,21 @@
   }
 
   function lock(msg) {
-    return `<div class="wrap lock"><h1>Нет доступа</h1><p>${msg}</p><p class="muted" style="font-size:14px">В демо роль меняется в плашке слева внизу.</p></div>`;
+    const action = store.user ? '<p class="muted" style="font-size:14px">Для этой почты раздел закрыт. Войдите под другой почтой.</p>' : '<a class="btn primary" href="#/login">Войти</a>';
+    return `<div class="wrap lock"><h1>Нет доступа</h1><p>${msg}</p>${action}</div>`;
+  }
+  function loginPage() {
+    const me = curUser();
+    if (me) return `<div class="wrap lock"><h1>Вы вошли</h1><p>${esc(me.name)}, ${ROLES[me.role].label.toLowerCase()}.</p><a class="btn primary" href="${START[me.role]}">Открыть кабинет</a></div>`;
+    return `<div class="wrap lock" style="max-width:440px;text-align:left"><h1>Вход для сотрудников</h1><p>Разделы кабинета зависят от почты. Редактор статей увидит только статьи, менеджер каталога только товары.</p>
+      <form id="loginForm" style="display:grid;gap:14px" novalidate>
+        <div><label class="label" for="email">Почта</label><input id="email" type="email" autocomplete="username" required style="width:100%"></div>
+        <div><label class="label" for="pass">Пароль</label><input id="pass" type="password" autocomplete="current-password" required style="width:100%"></div>
+        <div id="loginErr" role="alert" style="color:var(--accent);min-height:20px;font-size:14px"></div>
+        <button class="btn primary" type="submit">Войти</button>
+      </form>
+      <div style="margin-top:28px"><span class="label">Демо-почты (пароль ${DEMO_PASS})</span><div style="display:grid;gap:8px">
+      ${store.users.map((u) => `<button class="btn ghost" data-fill="${esc(u.email)}" style="justify-content:space-between"><span>${esc(u.email)}</span><span class="muted">${ROLES[u.role].label}</span></button>`).join('')}</div></div></div>`;
   }
   function adminProducts() {
     if (!can('catalog')) return lock('Раздел «Товары» доступен менеджеру каталога и администратору.');
@@ -229,8 +251,8 @@
   function adminUsers() {
     if (!can('users')) return lock('Раздел «Пользователи» доступен только администратору.');
     return `<div class="wrap page-pad"><div class="sec-head"><div><h1>Пользователи и роли</h1><p class="muted">Каждый сотрудник видит только то, что нужно для его работы.</p></div><button class="btn primary" data-toast="Приглашение отправлено (демо)"><i class="ph ph-user-plus"></i>Пригласить</button></div>
-      <table class="table"><thead><tr><th>Сотрудник</th><th>Роль</th><th>Что видит</th></tr></thead><tbody>
-      ${store.users.map((u) => `<tr><td><b>${esc(u.name)}</b></td><td><select data-user="${u.id}">${['editor', 'catalog', 'admin'].map((r) => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${ROLES[r].label}</option>`).join('')}</select></td>
+      <table class="table"><thead><tr><th>Сотрудник</th><th>Почта для входа</th><th>Роль</th><th>Что видит</th></tr></thead><tbody>
+      ${store.users.map((u) => `<tr><td><b>${esc(u.name)}</b></td><td class="mono" style="font-size:14px">${esc(u.email)}</td><td><select data-user="${u.id}">${['editor', 'catalog', 'admin'].map((r) => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${ROLES[r].label}</option>`).join('')}</select></td>
       <td><div class="scopes">${[['blog', 'Статьи'], ['catalog', 'Товары'], ['users', 'Пользователи'], ['integrations', 'Подключения']].map(([k, t]) => `<span class="st ${ROLES[u.role].can.includes(k) ? 'on' : 'off'}">${t}</span>`).join('')}</div></td></tr>`).join('')}
       </tbody></table></div>`;
   }
@@ -271,6 +293,7 @@
     else if (a === 'admin' && b === 'products') html = adminProducts();
     else if (a === 'admin' && b === 'users') html = adminUsers();
     else if (a === 'admin' && b === 'integrations') html = adminIntegr();
+    else if (a === 'login') html = loginPage();
     else if (a === 'contacts') html = contacts();
     else html = home();
     $('#app').innerHTML = header() + adminbar() + `<main>${html}</main>` + footer() + dock() + `<div class="toast" id="toast" role="status"></div>`;
@@ -340,7 +363,16 @@
     /* общие */
     $$('[data-price]').forEach((e) => e.addEventListener('click', () => toast('Заявка принята. Менеджер перезвонит в течение 5 минут (демо)')));
     $$('[data-toast]').forEach((e) => e.addEventListener('click', () => toast(e.dataset.toast)));
-    $$('[data-role]').forEach((e) => e.addEventListener('click', () => { store.role = e.dataset.role; persist(); const h = location.hash || '#/'; if (store.role === 'guest' && h.startsWith('#/admin')) location.hash = '#/'; route(); }));
+    $$('[data-role]').forEach((e) => e.addEventListener('click', () => { loginAs(e.dataset.role); const h = location.hash || '#/'; if (store.role === 'guest' && (h.startsWith('#/admin') || h.startsWith('#/login'))) location.hash = '#/'; route(true); }));
+    $$('[data-logout]').forEach((e) => e.addEventListener('click', () => { logout(); location.hash = '#/'; route(); toast('Вы вышли'); }));
+    $$('[data-fill]').forEach((e) => e.addEventListener('click', () => { $('#email').value = e.dataset.fill; $('#pass').value = DEMO_PASS; $('#loginErr').textContent = ''; }));
+    const lf = $('#loginForm');
+    if (lf) lf.addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      const u = store.users.find((x) => x.email === $('#email').value.trim().toLowerCase());
+      if (!u || $('#pass').value !== DEMO_PASS) { $('#loginErr').textContent = 'Неверная почта или пароль'; return; }
+      loginUser(u); location.hash = START[u.role]; route(); toast('Вы вошли как ' + u.name + ': ' + ROLES[u.role].label);
+    });
     const rs = $('[data-reset]'); if (rs) rs.addEventListener('click', () => { store = {}; try { localStorage.removeItem(KEY); } catch { /* нет хранилища */ } location.hash = '#/'; location.reload(); });
     $$('[data-autoedit]').forEach((e) => e.addEventListener('click', () => { S.autoEdit = true; }));
     const et = $('#editToggle'); if (et) et.addEventListener('click', () => setEdit(!S.edit, a, b));
@@ -414,7 +446,7 @@
       store.products[id] = { ...(store.products[id] || {}), channels: { ...p.channels, [k]: i.checked } }; persist();
       toast(({ site: 'Сайт', ozon: 'Ozon', tg: 'Telegram' }[k]) + ': ' + (i.checked ? 'включено' : 'выключено') + ' для «' + p.name + '»');
     }));
-    $$('[data-user]').forEach((s) => s.addEventListener('change', () => { const u = store.users.find((x) => x.id === +s.dataset.user); u.role = s.value; persist(); route(); toast('Роль изменена: ' + u.name + ', ' + ROLES[u.role].label); }));
+    $$('[data-user]').forEach((s) => s.addEventListener('change', () => { const u = store.users.find((x) => x.id === +s.dataset.user); u.role = s.value; if (u.email === store.user) store.role = u.role; persist(); route(true); toast('Роль изменена: ' + u.name + ', ' + ROLES[u.role].label); }));
     const sn = $('#syncNow'); if (sn) sn.addEventListener('click', () => { store.integr.ozonSync = 'только что'; persist(); $('#syncT').textContent = 'только что'; toast('Ozon: обновлено 14 цен и 14 остатков (демо)'); });
     $$('[data-int]').forEach((i) => i.addEventListener('change', () => { store.integr[i.dataset.int] = i.checked; persist(); }));
     $$('[data-int-toggle]').forEach((e) => e.addEventListener('click', () => { const k = e.dataset.intToggle; store.integr[k] = !store.integr[k]; persist(); route(); }));
@@ -422,7 +454,7 @@
 
   /* ссылки для показа: ?role=catalog открывает сайт сразу в нужной роли, &edit=1 включает режим правки */
   const qs = new URLSearchParams(location.search);
-  if (ROLES[qs.get('role')]) { store.role = qs.get('role'); persist(); }
+  if (ROLES[qs.get('role')]) loginAs(qs.get('role'));
   if (qs.get('edit') === '1') S.autoEdit = true;
 
   window.addEventListener('hashchange', route);
