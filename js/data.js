@@ -22,11 +22,11 @@ function colorOpt(label, items) {
   return { label, items: items.map((i) => ({ swatch: SWATCH[i.name], ...i })) };
 }
 
-function variants(sizes, base, opt, colors) {
+function variants(sizes, base, colors) {
   const cs = colors && colors.length ? colors : [''];
   const out = [];
-  sizes.forEach((s, i) => cs.forEach((c, j) => {
-    out.push({ size: s, color: c, opt: opt + i * 300 + j * 500, retail: base + i * 400 });
+  sizes.forEach((s, i) => cs.forEach((c) => {
+    out.push({ size: s, color: c, retail: base + i * 400 });
   }));
   return out;
 }
@@ -54,14 +54,14 @@ const PRODUCTS = [
         ] },
     ]),
     variants: [
-      { size: '120×200', color: 'Черный', opt: 11900, retail: 16550 },
-      { size: '120×200', color: 'Белый', opt: 12400, retail: 16550 },
-      { size: '140×200', color: 'Черный', opt: 12100, retail: 16950 },
-      { size: '140×200', color: 'Белый', opt: 12600, retail: 16950 },
-      { size: '160×200', color: 'Черный', opt: 12400, retail: 18150 },
-      { size: '160×200', color: 'Белый', opt: 13000, retail: 18150 },
-      { size: '180×200', color: 'Черный', opt: 13350, retail: 19150 },
-      { size: '180×200', color: 'Белый', opt: 13900, retail: 19150 },
+      { size: '120×200', color: 'Черный', retail: 16550 },
+      { size: '120×200', color: 'Белый', retail: 16550 },
+      { size: '140×200', color: 'Черный', retail: 16950 },
+      { size: '140×200', color: 'Белый', retail: 16950 },
+      { size: '160×200', color: 'Черный', retail: 18150 },
+      { size: '160×200', color: 'Белый', retail: 18150 },
+      { size: '180×200', color: 'Черный', retail: 19150 },
+      { size: '180×200', color: 'Белый', retail: 19150 },
     ],
     stats: [
       { id: 'head', value: '96', unit: 'см', label: 'высота изголовья' },
@@ -77,40 +77,40 @@ const PRODUCTS = [
   },
   { id: 'strajp-1', cat: 'odnoyarus', name: 'Кровать Страйп 1', img: 'strajp-1.jpg', demo: true,
     colorOpt: colorOpt('Цвет металла', [{ name: 'Белый', gallery: ['strajp-1.jpg'] }, { name: 'Черный' }]),
-    variants: variants(['120×200', '140×200', '160×200'], 15900, 11200, ['Белый', 'Черный']) },
+    variants: variants(['120×200', '140×200', '160×200'], 15900, ['Белый', 'Черный']) },
   { id: 'strajp-5n', cat: 'odnoyarus', name: 'Кровать Страйп 5н', img: 'strajp-5n.jpg', demo: true,
     colorOpt: colorOpt('Цвет металла', [{ name: 'Белый', gallery: ['strajp-5n.jpg'] }, { name: 'Черный' }]),
-    variants: variants(['120×200', '140×200', '160×200'], 17200, 12100, ['Белый', 'Черный']) },
+    variants: variants(['120×200', '140×200', '160×200'], 17200, ['Белый', 'Черный']) },
   { id: 'kanzona', cat: 'odnoyarus', name: 'Кровать Канзона', img: 'kanzona.jpg', demo: true,
     colorOpt: colorOpt('Цвет металла', [{ name: 'Белый', gallery: ['kanzona.jpg'] }, { name: 'Черный' }]),
-    variants: variants(['140×200', '160×200', '180×200'], 19800, 14200, ['Белый', 'Черный']) },
+    variants: variants(['140×200', '160×200', '180×200'], 19800, ['Белый', 'Черный']) },
   { id: 'garda-2', cat: 'malajziya', name: 'Кровать Гарда 2', img: 'garda-2.jpg', demo: true,
     colorOpt: colorOpt('Цвет металла', [{ name: 'Черный', gallery: ['garda-2.jpg'] }, { name: 'Белый' }]),
-    variants: variants(['140×200', '160×200'], 21400, 15100, ['Черный', 'Белый']) },
+    variants: variants(['140×200', '160×200'], 21400, ['Черный', 'Белый']) },
   { id: 'ofeliya-9', cat: 'malajziya', name: 'Кровать Офелия 9', img: 'ofeliya-9.jpg', demo: true,
     colorOpt: colorOpt('Цвет металла', [{ name: 'Белый', gallery: ['ofeliya-9.jpg'] }, { name: 'Черный' }]),
-    variants: variants(['140×200', '160×200'], 22900, 16300, ['Белый', 'Черный']) },
+    variants: variants(['140×200', '160×200'], 22900, ['Белый', 'Черный']) },
   { id: 'aleks', cat: 'dvuhyarus', name: 'Кровать «Алекс» чердак', img: 'aleks.jpg', demo: true,
     colorOpt: colorOpt('Цвет металла', [{ name: 'Серебро', gallery: ['aleks.jpg'] }, { name: 'Черный' }]),
-    variants: variants(['90×200'], 24500, 17400, ['Серебро', 'Черный']) },
+    variants: variants(['90×200'], 24500, ['Серебро', 'Черный']) },
   { id: 'semejnaya', cat: 'dvuhyarus', name: 'Кровать двухъярусная «Семейная»', img: 'semejnaya.jpg', demo: true,
     colorOpt: colorOpt('Цвет металла', [{ name: 'Черный', gallery: ['semejnaya.jpg'] }, { name: 'Белый' }]),
-    variants: variants(['90×200'], 27900, 19800, ['Черный', 'Белый']) },
+    variants: variants(['90×200'], 27900, ['Черный', 'Белый']) },
   { id: 'evropejskaya', cat: 'dvuhyarus', name: 'Кровать «Европейская» чердак', img: 'evropejskaya.jpg', demo: true,
     colorOpt: colorOpt('Цвет металла', [{ name: 'Черный', gallery: ['evropejskaya.jpg'] }, { name: 'Белый' }]),
-    variants: variants(['90×200'], 23700, 16900, ['Черный', 'Белый']) },
+    variants: variants(['90×200'], 23700, ['Черный', 'Белый']) },
   { id: 'tandem-5', cat: 'transformery', name: 'Диван-кровать Тандем 5', hit: true, img: 'tandem-5.jpg', fit: 'contain', demo: true,
     colorOpt: colorOpt('Цвет обивки', [{ name: 'Оливковый', gallery: ['tandem-5.jpg'] }, { name: 'Серый' }, { name: 'Бежевый' }]),
-    variants: variants(['100×200'], 48900, 35400, ['Оливковый', 'Серый', 'Бежевый']) },
+    variants: variants(['100×200'], 48900, ['Оливковый', 'Серый', 'Бежевый']) },
   { id: 'tandem-1', cat: 'transformery', name: 'Диван-кровать Тандем 1 с нырком', img: 'bruno.jpg', demo: true,
     colorOpt: colorOpt('Цвет боковин', [{ name: 'Бежевый', gallery: ['bruno.jpg'] }, { name: 'Белый' }]),
-    variants: variants(['80×190', '90×200'], 29900, 21800, ['Бежевый', 'Белый']) },
+    variants: variants(['80×190', '90×200'], 29900, ['Бежевый', 'Белый']) },
   { id: 'bruno', cat: 'transformery', name: 'Диван Бруно', img: 'tandem-6.jpg', demo: true,
     colorOpt: colorOpt('Цвет обивки', [{ name: 'Серый', gallery: ['tandem-6.jpg'] }, { name: 'Графит' }, { name: 'Бежевый' }]),
-    variants: variants(['140×210'], 38600, 27900, ['Серый', 'Графит', 'Бежевый']) },
-  { id: 'mech-tandem-1', cat: 'mehanizmy', name: 'Механизм Тандем 1 с нырком', img: 'mech-tandem-1.jpg', demo: true, variants: variants(['80×190'], 8900, 6200) },
-  { id: 'mech-tandem-4', cat: 'mehanizmy', name: 'Механизм Тандем 4', img: 'mech-tandem-4.jpg', demo: true, variants: variants(['80×190'], 7400, 5200) },
-  { id: 'osnovanie', cat: 'osnovaniya', name: 'Ортопедическое основание разборное', img: 'osnovanie.jpg', demo: true, variants: variants(['140×200', '160×200'], 6900, 4800) },
+    variants: variants(['140×210'], 38600, ['Серый', 'Графит', 'Бежевый']) },
+  { id: 'mech-tandem-1', cat: 'mehanizmy', name: 'Механизм Тандем 1 с нырком', img: 'mech-tandem-1.jpg', demo: true, variants: variants(['80×190'], 8900) },
+  { id: 'mech-tandem-4', cat: 'mehanizmy', name: 'Механизм Тандем 4', img: 'mech-tandem-4.jpg', demo: true, variants: variants(['80×190'], 7400) },
+  { id: 'osnovanie', cat: 'osnovaniya', name: 'Ортопедическое основание разборное', img: 'osnovanie.jpg', demo: true, variants: variants(['140×200', '160×200'], 6900) },
 ];
 
 PRODUCTS.forEach((p) => {
@@ -143,18 +143,25 @@ const POSTS = [
     body: ['Начните с размера: между краем кровати и стеной оставьте не меньше 60 см. Затем решите, какое основание вам нужно: ламели или жёсткий щит.', 'Остальное зависит от задач: хранение вещей, частота использования и вес спящих.'] },
 ];
 
-/* Сотрудники. В демо роль определяется по почте при входе, пароль у всех один (DEMO_PASS).
+/* Сотрудники. В демо роль определяется по почте при входе в /admin, пароль у всех один (DEMO_PASS).
    В настоящем проекте это делает сервер: проверяет пароль и выдаёт права по роли из базы. */
 const DEMO_PASS = 'novita';
 const USERS = [
-  { id: 1, name: 'Айгуль Сафина', email: 'aygul@novita.demo', role: 'editor' },
-  { id: 2, name: 'Рустем Галиев', email: 'rustem@novita.demo', role: 'catalog' },
-  { id: 3, name: 'Игорь Волков', email: 'admin@novita.demo', role: 'admin' },
+  { id: 1, email: 'redactor@novita.demo', role: 'editor' },
+  { id: 2, email: 'catalog@novita.demo', role: 'catalog' },
+  { id: 3, email: 'admin@novita.demo', role: 'admin' },
+];
+
+/* Заказы для примера. Новые заказы с сайта добавляются сверху. */
+const ORDERS = [
+  { id: 'NV-1041', date: '2026-10-24 18:20', source: 'Сайт', status: 'new', name: 'Покупатель 1', phone: '+7 900 000-00-01', city: 'Казань', delivery: 'Доставка', pay: 'Картой', paid: true, items: [{ id: 'kanzona', size: '160×200', color: 'Белый', qty: 1 }] },
+  { id: 'NV-1040', date: '2026-10-24 12:05', source: 'Ozon', status: 'shipped', name: 'Покупатель 2', phone: '+7 900 000-00-02', city: 'Самара', delivery: 'Ozon', pay: 'Ozon', paid: true, items: [{ id: 'strajp-1n', size: '140×200', color: 'Черный', qty: 1 }] },
+  { id: 'NV-1039', date: '2026-10-23 16:40', source: 'Сайт', status: 'assembling', name: 'Покупатель 3', phone: '+7 900 000-00-03', city: 'Казань', delivery: 'Самовывоз', pay: 'СБП', paid: true, items: [{ id: 'osnovanie', size: '160×200', color: '', qty: 2 }] },
 ];
 
 const ROLES = {
   guest: { label: 'Посетитель', can: [], note: 'Видит сайт так, как его видят покупатели.' },
   editor: { label: 'Редактор статей', can: ['blog'], note: 'Пишет и публикует статьи. Каталога и настроек не видит.' },
-  catalog: { label: 'Менеджер каталога', can: ['catalog'], note: 'Правит карточки товаров прямо на сайте. Блога и настроек не видит.' },
-  admin: { label: 'Администратор', can: ['blog', 'catalog', 'users', 'integrations'], note: 'Видит всё: контент, пользователей и подключения.' },
+  catalog: { label: 'Менеджер каталога', can: ['catalog', 'orders'], note: 'Правит карточки товаров и ведёт заказы. Блога и настроек не видит.' },
+  admin: { label: 'Администратор', can: ['blog', 'catalog', 'orders', 'users', 'integrations'], note: 'Видит всё: контент, пользователей и подключения.' },
 };
