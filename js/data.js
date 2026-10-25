@@ -113,6 +113,9 @@ const PRODUCTS = [
   { id: 'osnovanie', cat: 'osnovaniya', name: 'Ортопедическое основание разборное', img: 'osnovanie.jpg', demo: true, variants: variants(['140×200', '160×200'], 6900) },
 ];
 
+/* Остатки условные: в демо их нет в данных фабрики */
+const STOCK = { 'strajp-1n': 42, 'strajp-1': 18, 'strajp-5n': 25, kanzona: 9, 'garda-2': 14, 'ofeliya-9': 6, aleks: 11, semejnaya: 8, evropejskaya: 0, 'tandem-5': 5, 'tandem-1': 12, bruno: 7, 'mech-tandem-1': 120, 'mech-tandem-4': 64, osnovanie: 3 };
+
 PRODUCTS.forEach((p) => {
   if (!p.lead) p.lead = 'Модель из каталога фабрики «Новита». Размеры и цвет можно изменить под заказ.';
   if (!p.gallery) p.gallery = [p.img];
@@ -128,6 +131,8 @@ PRODUCTS.forEach((p) => {
     ['Условия', [['Отгрузка', 'в день обращения из наличия'], ['Гарантия', '18 месяцев']]],
   ];
   p.channels = { site: true, ozon: p.cat !== 'mehanizmy' };
+  p.sku = 'NV-' + p.id.toUpperCase().replace(/[^A-Z0-9]+/g, '-');
+  p.stock = STOCK[p.id] ?? 20;
 });
 
 const POSTS = [
@@ -152,16 +157,73 @@ const USERS = [
   { id: 3, email: 'admin@novita.demo', role: 'admin' },
 ];
 
-/* Заказы для примера. Новые заказы с сайта добавляются сверху. */
+/* Заказы для примера. Даты считаются от сегодняшнего дня, чтобы график в кабинете не выглядел пустым. */
+function ago(days, hour, min) {
+  const d = new Date(); d.setDate(d.getDate() - days); d.setHours(hour, min, 0, 0);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 const ORDERS = [
-  { id: 'NV-1041', date: '2026-10-24 18:20', source: 'Сайт', status: 'new', name: 'Покупатель 1', phone: '+7 900 000-00-01', city: 'Казань', delivery: 'Доставка', pay: 'Картой', paid: true, items: [{ id: 'kanzona', size: '160×200', color: 'Белый', qty: 1 }] },
-  { id: 'NV-1040', date: '2026-10-24 12:05', source: 'Ozon', status: 'shipped', name: 'Покупатель 2', phone: '+7 900 000-00-02', city: 'Самара', delivery: 'Ozon', pay: 'Ozon', paid: true, items: [{ id: 'strajp-1n', size: '140×200', color: 'Черный', qty: 1 }] },
-  { id: 'NV-1039', date: '2026-10-23 16:40', source: 'Сайт', status: 'assembling', name: 'Покупатель 3', phone: '+7 900 000-00-03', city: 'Казань', delivery: 'Самовывоз', pay: 'СБП', paid: true, items: [{ id: 'osnovanie', size: '160×200', color: '', qty: 2 }] },
+  { id: 'NV-1041', date: ago(0, 9, 20), source: 'Сайт', status: 'new', name: 'Покупатель 1', phone: '+7 (900) 000-00-01', city: 'Казань', delivery: 'Доставка', address: 'Казань, ул. Примерная, 1', pay: 'Картой', paid: true, items: [{ id: 'kanzona', size: '160×200', color: 'Белый', qty: 1 }] },
+  { id: 'NV-1040', date: ago(1, 12, 5), source: 'Ozon', status: 'shipped', name: 'Покупатель 2', phone: '+7 (900) 000-00-02', city: 'Самара', delivery: 'Ozon', pay: 'Ozon', paid: true, items: [{ id: 'strajp-1n', size: '140×200', color: 'Черный', qty: 1 }] },
+  { id: 'NV-1039', date: ago(1, 16, 40), source: 'Сайт', status: 'assembling', name: 'Покупатель 3', phone: '+7 (900) 000-00-03', city: 'Казань', delivery: 'Самовывоз', pay: 'СБП', paid: true, items: [{ id: 'osnovanie', size: '160×200', color: '', qty: 2 }] },
+  { id: 'NV-1038', date: ago(2, 11, 15), source: 'Ozon', status: 'done', name: 'Покупатель 4', phone: '+7 (900) 000-00-04', city: 'Москва', delivery: 'Ozon', pay: 'Ozon', paid: true, items: [{ id: 'strajp-1n', size: '120×200', color: 'Белый', qty: 1 }] },
+  { id: 'NV-1037', date: ago(3, 14, 30), source: 'Сайт', status: 'production', name: 'Покупатель 5', phone: '+7 (900) 000-00-05', city: 'Набережные Челны', delivery: 'Доставка', address: 'Набережные Челны, пр. Примерный, 5', pay: 'Картой', paid: true, items: [{ id: 'semejnaya', size: '90×200', color: 'Черный', qty: 1 }] },
+  { id: 'NV-1036', date: ago(4, 10, 10), source: 'Сайт', status: 'done', name: 'Покупатель 6', phone: '+7 (900) 000-00-06', city: 'Казань', delivery: 'Самовывоз', pay: 'СБП', paid: true, items: [{ id: 'strajp-5n', size: '140×200', color: 'Белый', qty: 1 }] },
+  { id: 'NV-1035', date: ago(5, 18, 45), source: 'Ozon', status: 'done', name: 'Покупатель 7', phone: '+7 (900) 000-00-07', city: 'Уфа', delivery: 'Ozon', pay: 'Ozon', paid: true, items: [{ id: 'mech-tandem-4', size: '80×190', color: '', qty: 3 }] },
+  { id: 'NV-1034', date: ago(7, 13, 25), source: 'Сайт', status: 'canceled', name: 'Покупатель 8', phone: '+7 (900) 000-00-08', city: 'Казань', delivery: 'Доставка', address: 'Казань, ул. Примерная, 8', pay: 'Картой', paid: false, items: [{ id: 'garda-2', size: '160×200', color: 'Черный', qty: 1 }] },
+  { id: 'NV-1033', date: ago(8, 9, 50), source: 'Сайт', status: 'done', name: 'Покупатель 9', phone: '+7 (900) 000-00-09', city: 'Чебоксары', delivery: 'Доставка', address: 'Чебоксары, ул. Примерная, 9', pay: 'Картой', paid: true, items: [{ id: 'tandem-5', size: '100×200', color: 'Оливковый', qty: 1 }] },
+  { id: 'NV-1032', date: ago(10, 15, 0), source: 'Ozon', status: 'done', name: 'Покупатель 10', phone: '+7 (900) 000-00-10', city: 'Екатеринбург', delivery: 'Ozon', pay: 'Ozon', paid: true, items: [{ id: 'strajp-1n', size: '160×200', color: 'Черный', qty: 2 }] },
+  { id: 'NV-1031', date: ago(12, 12, 30), source: 'Сайт', status: 'done', name: 'Покупатель 11', phone: '+7 (900) 000-00-11', city: 'Казань', delivery: 'Самовывоз', pay: 'СБП', paid: true, items: [{ id: 'evropejskaya', size: '90×200', color: 'Черный', qty: 1 }] },
+];
+
+/* Заявки на звонок (форма на сайте) */
+const LEADS = [
+  { id: 'L-3', t: ago(0, 10, 12), type: 'Звонок', name: 'Покупатель 12', phone: '+7 (900) 000-00-12', status: 'new', note: 'Хочу уточнить размер' },
+  { id: 'L-2', t: ago(2, 17, 3), type: 'Звонок', name: 'Покупатель 13', phone: '+7 (900) 000-00-13', status: 'done', note: '' },
+];
+
+/* Журнал синхронизаций и событий */
+const SYNC_LOG = [
+  { t: ago(0, 9, 0), kind: 'Ozon', msg: 'Синхронизация: цены и остатки обновлены' },
+  { t: ago(1, 9, 0), kind: 'Ozon', msg: 'Синхронизация: цены и остатки обновлены' },
+  { t: ago(1, 12, 6), kind: 'Ozon', msg: 'Новый заказ NV-1040 загружен с Ozon' },
+];
+
+/* Старые адреса WordPress (metallstil.ru) и куда они должны вести на новом сайте.
+   Нужны, чтобы после переезда не потерять позиции в Яндексе и Google. */
+const OLD_URLS = [
+  ['/catalog/odnoyarusnye-metallicheskie-krovati/', '/catalog/odnoyarus/'],
+  ['/catalog/dvuhyarusnye-metallicheskie-krovati/', '/catalog/dvuhyarus/'],
+  ['/catalog/krovati-malajziya/', '/catalog/malajziya/'],
+  ['/catalog/krovati-transformery/', '/catalog/transformery/'],
+  ['/catalog/mehanizmy-transformatsii/', '/catalog/mehanizmy/'],
+  ['/catalog/ortopedicheskie-osnovaniya/', '/catalog/osnovaniya/'],
+  ['/catalog/odnoyarusnye-metallicheskie-krovati/krovat-strajp-1n/', '/product/strajp-1n/'],
+  ['/catalog/odnoyarusnye-metallicheskie-krovati/krovat-sirajp/', '/product/strajp-1/'],
+  ['/catalog/odnoyarusnye-metallicheskie-krovati/krovat-strajp-5n/', '/product/strajp-5n/'],
+  ['/catalog/odnoyarusnye-metallicheskie-krovati/krovat-kanzona/', '/product/kanzona/'],
+  ['/catalog/krovati-malajziya/krovat-garda-2/', '/product/garda-2/'],
+  ['/catalog/krovati-malajziya/krovat-ofeliya-9/', '/product/ofeliya-9/'],
+  ['/catalog/dvuhyarusnye-metallicheskie-krovati/krovat-dvuhyarusnaya-semejnaya/', '/product/semejnaya/'],
+  ['/catalog/dvuhyarusnye-metallicheskie-krovati/krovat-dvuhyarusnaya-aleks-cherdak/', '/product/aleks/'],
+  ['/catalog/dvuhyarusnye-metallicheskie-krovati/krovat-dvuhyarusnaya-evropejskaya-cherdak/', '/product/evropejskaya/'],
+  ['/catalog/dvuhyarusnye-metallicheskie-krovati/divan-krovat-tandem-5/', '/product/tandem-5/'],
+  ['/catalog/krovati-transformery/divan-bruno/', '/product/bruno/'],
+  ['/catalog/mehanizmy-transformatsii/mehanizm-tandem-1-s-nyrkom-80-190/', '/product/mech-tandem-1/'],
+  ['/catalog/mehanizmy-transformatsii/mehanizm-tandem-4/', '/product/mech-tandem-4/'],
+  ['/catalog/ortopedicheskie-osnovaniya/ortopedicheskoe-osnovanie-razbornoe-2/', '/product/osnovanie/'],
+  ['/blog/kak-vybrat-dvuhyarusnuyu-krovat-dlya-detej/', '/blog/dvuhyarusnaya-dlya-detej/'],
+  ['/blog/vidy-mehanizmov-dlya-divanov/', '/blog/vidy-mehanizmov/'],
+  ['/blog/krovati-transformery-vidy-i-osobennosti/', '/blog/krovati-transformery/'],
+  ['/blog/kak-vybrat-krovat-s-podemnym-mehanizmom/', '/blog/podemnyj-mehanizm/'],
+  ['/blog/top-8-sovetov-kak-pravilno-vybrat-horoshuyu-krovat/', '/blog/top-8-sovetov/'],
+  ['/contacts/', '/contacts/'],
 ];
 
 const ROLES = {
   guest: { label: 'Посетитель', can: [], note: 'Видит сайт так, как его видят покупатели.' },
   editor: { label: 'Редактор статей', can: ['blog'], note: 'Пишет и публикует статьи. Каталога и настроек не видит.' },
-  catalog: { label: 'Менеджер каталога', can: ['catalog', 'orders'], note: 'Правит карточки товаров и ведёт заказы. Блога и настроек не видит.' },
-  admin: { label: 'Администратор', can: ['blog', 'catalog', 'orders', 'users', 'integrations'], note: 'Видит всё: контент, пользователей и подключения.' },
+  catalog: { label: 'Менеджер каталога', can: ['catalog', 'orders', 'leads', 'ozon'], note: 'Правит товары, ведёт заказы и заявки, следит за Ozon. Блога и настроек не видит.' },
+  admin: { label: 'Администратор', can: ['blog', 'catalog', 'orders', 'leads', 'ozon', 'seo', 'users', 'integrations'], note: 'Видит всё: контент, пользователей и подключения.' },
 };
