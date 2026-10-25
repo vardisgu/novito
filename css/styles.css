@@ -413,3 +413,6 @@ body.in-admin { background: #EEF2F7; }
 .in-admin .publish .pub-actions { display: flex; gap: 8px; margin-left: auto; }
 .in-admin .publish #delP { flex-basis: 100%; justify-self: start; width: fit-content; }
 @media (max-width: 960px) { .in-admin .publish .pub-actions { margin-left: 0; width: 100%; } .in-admin .publish .pub-actions .btn { flex: 1; } }
+
+.spec-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.btn.danger:hover { background: #B3261E; border-color: #B3261E; color: #fff; }

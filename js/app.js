@@ -214,8 +214,8 @@
       </div>
     </div>
     <div class="stats" data-reveal>${p.stats.map((s) => `<div><b data-count>${esc(s.value)}</b><em>${esc(s.unit)}</em><span>${esc(s.label)}</span></div>`).join('')}</div>
-    <h2 class="sec-title" style="margin:56px 0 0;font-size:28px" data-reveal>Характеристики</h2>
-    <div class="spec-grid" data-reveal>${p.specs.map(([t, rows]) => `<div class="spec"><h3>${esc(t)}</h3><dl>${rows.map(([k, val]) => `<div><dt>${esc(k)}</dt><dd>${esc(val)}</dd></div>`).join('')}</dl></div>`).join('')}</div>
+    ${p.specs.length ? `<h2 class="sec-title" style="margin:56px 0 0;font-size:28px" data-reveal>Характеристики</h2>
+    <div class="spec-grid" data-reveal>${p.specs.map(([t, rows]) => `<div class="spec"><h3>${esc(t)}</h3><dl>${rows.map(([k, val]) => `<div><dt>${esc(k)}</dt><dd>${esc(val)}</dd></div>`).join('')}</dl></div>`).join('')}</div>` : ''}
     ${p.demo ? '<p class="demo-note" style="margin-top:16px">Демо: цены и характеристики этой модели условные.</p>' : ''}
     <h2 class="sec-title" style="margin:64px 0 24px;font-size:28px">Другие модели</h2>
     <div class="grid-cards" style="padding-bottom:96px">${more.map((x) => pcard(x)).join('')}</div></div>`;
@@ -537,10 +537,11 @@
   }
   function renderSpecs() {
     const d = S.draft; const g = $('#specGrid');
-    g.innerHTML = d.specs.map((grp, gi) => `<div class="spec"><h3 data-f="specs.${gi}.0">${esc(grp[0])}</h3><dl>${grp[1].map((row, ri) => `<div class="sprow"><div><dt data-f="specs.${gi}.1.${ri}.0">${esc(row[0])}</dt><dd data-f="specs.${gi}.1.${ri}.1">${esc(row[1])}</dd></div><button class="icon" type="button" data-rmspec="${gi}:${ri}" aria-label="Убрать строку"><i class="ph ph-x"></i></button></div>`).join('')}</dl><button class="btn sm ghost" type="button" data-addspec="${gi}">+ Строка</button></div>`).join('');
+    g.innerHTML = d.specs.map((grp, gi) => `<div class="spec"><h3 data-f="specs.${gi}.0">${esc(grp[0])}</h3><dl>${grp[1].map((row, ri) => `<div class="sprow"><div><dt data-f="specs.${gi}.1.${ri}.0">${esc(row[0])}</dt><dd data-f="specs.${gi}.1.${ri}.1">${esc(row[1])}</dd></div><button class="icon" type="button" data-rmspec="${gi}:${ri}" aria-label="Убрать строку"><i class="ph ph-x"></i></button></div>`).join('')}</dl><div class="spec-actions"><button class="btn sm ghost" type="button" data-addspec="${gi}">+ Строка</button><button class="btn sm ghost danger" type="button" data-rmgroup="${gi}"><i class="ph ph-trash"></i>Удалить группу</button></div></div>`).join('');
     bindEditable(g);
     $$('[data-rmspec]').forEach((b) => b.addEventListener('click', () => { const [gi, ri] = b.dataset.rmspec.split(':').map(Number); d.specs[gi][1].splice(ri, 1); markDirty('specs'); renderSpecs(); }));
     $$('[data-addspec]').forEach((b) => b.addEventListener('click', () => { d.specs[+b.dataset.addspec][1].push(['Параметр', 'Значение']); markDirty('specs'); renderSpecs(); }));
+    $$('[data-rmgroup]').forEach((b) => b.addEventListener('click', () => { d.specs.splice(+b.dataset.rmgroup, 1); markDirty('specs'); renderSpecs(); }));
   }
   function saveProduct() {
     const d = S.draft; const { id: eid, base } = S.editing; const err = $('#edErr');
