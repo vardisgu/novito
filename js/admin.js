@@ -130,15 +130,15 @@ const ADM = (() => {
   /* ---------- редактор товара: выглядит как карточка, поля правятся на месте ---------- */
   function blankDraft() {
     return { isNew: true, cat: 'odnoyarus', name: 'Новый товар', lead: 'Короткое описание товара: чем он удобен покупателю.', gallery: [], colorGal: false, sku: 'NV-' + Math.random().toString(36).slice(2, 7).toUpperCase(), stock: 0,
-      sizes: [{ size: '120×200', price: 0 }], colorLabel: 'Цвет металла', colors: ['Черный', 'Белый'],
+      sizes: [{ size: '120×200', prices: { 'Черный': 0, 'Белый': 0 } }], colorLabel: 'Цвет металла', colors: ['Черный', 'Белый'],
       stats: [{ id: 's1', value: '100', unit: 'кг', label: 'нагрузка на место' }, { id: 's2', value: '1,5', unit: 'мм', label: 'толщина стали' }, { id: 's3', value: '1', unit: 'день', label: 'отгрузка из наличия' }, { id: 's4', value: '18', unit: 'мес', label: 'гарантия' }],
       specs: [['Характеристики', [['Материал', 'сталь, порошковая окраска'], ['Гарантия', '18 месяцев']]]], channels: { site: true, ozon: true } };
   }
   function draftFrom(p) {
-    const seen = new Map();
-    p.variants.forEach((v) => { if (!seen.has(v.size)) seen.set(v.size, v.retail); });
+    const rows = [];
+    p.variants.forEach((v) => { let r = rows.find((x) => x.size === v.size); if (!r) { r = { size: v.size, prices: {} }; rows.push(r); } r.prices[v.color] = v.retail; });
     return { isNew: false, cat: p.cat, name: p.name, lead: p.lead, gallery: clone(p.gallery || [p.img]), colorGal: !!(p.colorOpt && p.colorOpt.items.some((i) => i.gallery)), sku: p.sku, stock: p.stock ?? 0,
-      sizes: [...seen].map(([size, price]) => ({ size, price })), colorLabel: p.colorOpt ? p.colorOpt.label : 'Без выбора цвета', colors: p.colorOpt ? p.colorOpt.items.map((i) => i.name) : [],
+      sizes: rows, colorLabel: p.colorOpt ? p.colorOpt.label : 'Без выбора цвета', colors: p.colorOpt ? p.colorOpt.items.map((i) => i.name) : [],
       stats: clone(p.stats), specs: clone(p.specs), channels: { site: p.channels.site !== false, ozon: !!p.channels.ozon } };
   }
   function productEditor(id) {
@@ -218,10 +218,22 @@ const ADM = (() => {
       rd.readAsDataURL(file);
     });
   }
+  /* цена у каждого размера задаётся для каждого цвета: у «Страйп 1» чёрная и белая кровати стоят по-разному */
+  const priceCols = () => (S.draft.colorLabel === 'Без выбора цвета' || !S.draft.colors.length ? [''] : S.draft.colors);
+  function syncPriceKeys() {
+    const cols = priceCols();
+    S.draft.sizes.forEach((r) => { const first = Object.values(r.prices).find((v) => v) || 0; const np = {}; cols.forEach((c) => { np[c] = r.prices[c] ?? first; }); r.prices = np; });
+  }
   function renderSizes() {
-    const d = S.draft;
-    $('#sizesEd').innerHTML = d.sizes.map((s, i) => `<div class="szrow"><input data-sz="${i}:size" value="${esc(s.size)}" aria-label="Размер" placeholder="120×200"><input data-sz="${i}:price" inputmode="numeric" value="${s.price || ''}" aria-label="Цена" placeholder="Цена"><span>₽</span><button class="icon" type="button" data-rmsz="${i}" aria-label="Убрать размер"><i class="ph ph-x"></i></button></div>`).join('');
-    $$('[data-sz]').forEach((inp) => inp.addEventListener('input', () => { const [i, k] = inp.dataset.sz.split(':'); d.sizes[+i][k] = k === 'price' ? parseInt(inp.value.replace(/\D/g, ''), 10) || 0 : inp.value.trim(); markDirty('sizes'); }));
+    const d = S.draft; const cols = priceCols(); const named = cols[0] !== '';
+    const tpl = `grid-template-columns:minmax(80px,1.3fr) repeat(${cols.length}, minmax(64px,1fr)) 32px`;
+    $('#sizesEd').innerHTML = `<div class="szhead" style="${tpl}"><span>Размер</span>${cols.map((c) => `<span>${named ? esc(c) + ', ₽' : 'Цена, ₽'}</span>`).join('')}<span></span></div>`
+      + d.sizes.map((s, i) => `<div class="szrow" style="${tpl}"><input data-sz="${i}:size" value="${esc(s.size)}" aria-label="Размер" placeholder="120×200">${cols.map((c, ci) => `<input data-sz="${i}:price:${ci}" inputmode="numeric" value="${s.prices[c] || ''}" aria-label="Цена ${esc(c)}" placeholder="Цена">`).join('')}<button class="icon" type="button" data-rmsz="${i}" aria-label="Убрать размер"><i class="ph ph-x"></i></button></div>`).join('');
+    $$('[data-sz]').forEach((inp) => inp.addEventListener('input', () => {
+      const [i, k, ci] = inp.dataset.sz.split(':');
+      if (k === 'size') d.sizes[+i].size = inp.value.trim(); else d.sizes[+i].prices[cols[+ci]] = parseInt(inp.value.replace(/\D/g, ''), 10) || 0;
+      markDirty('sizes');
+    }));
     $$('[data-rmsz]').forEach((b) => b.addEventListener('click', () => { if (d.sizes.length > 1) { d.sizes.splice(+b.dataset.rmsz, 1); markDirty('sizes'); renderSizes(); } }));
   }
   function renderSpecs() {
@@ -236,12 +248,13 @@ const ADM = (() => {
     const d = S.draft; const { id: eid, base } = S.editing; const err = $('#edErr');
     const sizes = d.sizes.filter((s) => s.size);
     if (!d.name.trim()) { err.textContent = 'Укажите название товара'; return; }
-    if (!sizes.length || sizes.some((s) => !s.price)) { err.textContent = 'У каждого размера должна быть цена'; return; }
+    const cols = priceCols();
+    if (!sizes.length || sizes.some((s) => cols.some((c) => !s.prices[c]))) { err.textContent = 'У каждого размера должна быть цена для каждого цвета'; return; }
     if (!d.gallery.length) { err.textContent = 'Добавьте хотя бы одно фото'; return; }
     const colors = d.colorLabel === 'Без выбора цвета' ? [] : d.colors;
     const oldItems = base && base.colorOpt ? base.colorOpt.items : [];
     const items = colors.map((n) => oldItems.find((i) => i.name === n) || { name: n, swatch: SWATCH[n] || '#9AA0A6' });
-    const variants = sizes.flatMap((s) => (colors.length ? colors : ['']).map((c) => ({ size: s.size, color: c, retail: s.price })));
+    const variants = sizes.flatMap((s) => (colors.length ? colors : ['']).map((c) => ({ size: s.size, color: c, retail: s.prices[colors.length ? c : ''] })));
     const common = { cat: d.cat, name: d.name.trim(), lead: d.lead.trim(), sku: d.sku.trim() || 'NV-' + Date.now(), stock: Math.max(0, parseInt(String(d.stock).replace(/\D/g, ''), 10) || 0), colorOpt: colors.length ? { label: d.colorLabel, items } : null, variants, stats: d.stats, specs: d.specs, channels: d.channels };
     let newId = eid;
     if (d.isNew) { newId = 'p-' + Date.now(); store.custom[newId] = { id: newId, ...common, gallery: d.gallery, img: d.gallery[0], pins: [] }; }
@@ -249,7 +262,7 @@ const ADM = (() => {
     else store.products[eid] = { ...common, ...(d.colorGal ? {} : { gallery: d.gallery, img: d.gallery[0] }) };
     persist();
     if (persistFailed()) { err.textContent = 'Браузер не смог сохранить: фото слишком тяжёлые. Уберите часть фото.'; return; }
-    if (d.channels.ozon && store.ozon.prices) log('Ozon', `Карточка «${common.name}» отправлена на Ozon (цена ${rub(ozonPrice(Math.min(...sizes.map((s) => s.price))))})`);
+    if (d.channels.ozon && store.ozon.prices) log('Ozon', `Карточка «${common.name}» отправлена на Ozon (цена ${rub(ozonPrice(Math.min(...variants.map((v) => v.retail))))})`);
     const where = ['site', 'ozon'].filter((k) => d.channels[k]).map((k) => ({ site: 'на сайте', ozon: 'в Ozon' }[k]));
     location.hash = '#/admin/products'; ADM.route();
     toast((d.isNew ? 'Товар создан. ' : 'Сохранено. ') + (where.length ? 'Появится ' + where.join(', ') : 'Нигде не показывается') + ' (демо)');
@@ -261,9 +274,9 @@ const ADM = (() => {
     $('#edCat').addEventListener('change', (e) => { d.cat = e.target.value; markDirty('cat'); });
     $('#edSku').addEventListener('input', (e) => { d.sku = e.target.value; markDirty('sku'); });
     $('#edStock').addEventListener('input', (e) => { d.stock = e.target.value.replace(/\D/g, ''); markDirty('stock'); });
-    $('#addSize').addEventListener('click', () => { d.sizes.push({ size: '', price: 0 }); markDirty('sizes'); renderSizes(); const l = $$('[data-sz$=":size"]'); if (l.length) l[l.length - 1].focus(); });
-    $('#edColorLabel').addEventListener('change', (e) => { d.colorLabel = e.target.value; $('#edColors').disabled = d.colorLabel === 'Без выбора цвета'; markDirty('color'); });
-    $('#edColors').addEventListener('input', (e) => { d.colors = e.target.value.split(',').map((x) => x.trim()).filter(Boolean); markDirty('color'); });
+    $('#addSize').addEventListener('click', () => { d.sizes.push({ size: '', prices: Object.fromEntries(priceCols().map((c) => [c, 0])) }); markDirty('sizes'); renderSizes(); const l = $$('[data-sz$=":size"]'); if (l.length) l[l.length - 1].focus(); });
+    $('#edColorLabel').addEventListener('change', (e) => { d.colorLabel = e.target.value; $('#edColors').disabled = d.colorLabel === 'Без выбора цвета'; markDirty('color'); syncPriceKeys(); renderSizes(); });
+    $('#edColors').addEventListener('input', (e) => { d.colors = e.target.value.split(',').map((x) => x.trim()).filter(Boolean); markDirty('color'); syncPriceKeys(); renderSizes(); });
     $('#addGroup').addEventListener('click', () => { d.specs.push(['Новая группа', [['Параметр', 'Значение']]]); markDirty('specs'); renderSpecs(); });
     $$('[data-ch]').forEach((i) => { i.checked = !!d.channels[i.dataset.ch]; i.addEventListener('change', () => { d.channels[i.dataset.ch] = i.checked; markDirty('ch.' + i.dataset.ch); }); });
     $('#saveP').addEventListener('click', saveProduct);

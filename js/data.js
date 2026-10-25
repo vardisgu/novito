@@ -1,5 +1,5 @@
-/* Демо-данные. Реальные: названия моделей, фото и все числа у «Страйп 1н» (с metallstil.ru).
-   Остальные цены и характеристики условные, у таких товаров стоит пометка demo.
+/* Реальные данные с metallstil.ru: названия моделей, фото, размеры, цвета и розничные цены всех товаров (по состоянию на 25.10.2026).
+   Все числа у «Страйп 1н» тоже настоящие. Остальные характеристики, остатки и цена Тандем 1 (на сайте фабрики она по запросу) условные, у таких товаров стоит пометка demo.
    colorOpt описывает, ЧТО именно выбирает покупатель: цвет металла, цвет обивки и т.д.
    У механизмов и оснований цвета нет, поэтому у них colorOpt не задан и выбор не показывается. */
 
@@ -14,7 +14,7 @@ const CATS = {
 
 const SWATCH = {
   'Черный': '#1b1f23', 'Белый': '#ffffff', 'Серебро': '#b9bec3', 'Серый': '#9aa0a6', 'Графит': '#4a4f55',
-  'Бежевый': '#d8cbb5', 'Оливковый': '#7d8761',
+  'Бежевый': '#d8cbb5', 'Оливковый': '#7d8761', 'Венге': '#4a372f', 'Орех': '#7a5230', 'Синий': '#2f5fa8', 'Teddy': '#d9c9b0', 'Nebby': '#a4a8ad',
 };
 
 /* опция цвета: label подпись, items список цветов; gallery/pins у цвета, если есть своё фото */
@@ -22,13 +22,10 @@ function colorOpt(label, items) {
   return { label, items: items.map((i) => ({ swatch: SWATCH[i.name], ...i })) };
 }
 
-function variants(sizes, base, colors) {
+/* Цены с сайта фабрики. rows: [размер, цена] (одна цена на все цвета) или [размер, цена цвета 1, цена цвета 2, ...] */
+function priced(rows, colors) {
   const cs = colors && colors.length ? colors : [''];
-  const out = [];
-  sizes.forEach((s, i) => cs.forEach((c) => {
-    out.push({ size: s, color: c, retail: base + i * 400 });
-  }));
-  return out;
+  return rows.flatMap((r) => cs.map((c, i) => ({ size: r[0], color: c, retail: r.length > 2 ? r[1 + i] : r[1] })));
 }
 
 const METAL = ['Черный', 'Белый'];
@@ -76,41 +73,38 @@ const PRODUCTS = [
     ],
   },
   { id: 'strajp-1', cat: 'odnoyarus', name: 'Кровать Страйп 1', img: 'strajp-1.jpg', demo: true,
-    colorOpt: colorOpt('Цвет металла', [{ name: 'Белый', gallery: ['strajp-1.jpg'] }, { name: 'Черный' }]),
-    variants: variants(['120×200', '140×200', '160×200'], 15900, ['Белый', 'Черный']) },
+    colorOpt: colorOpt('Цвет металла', [{ name: 'Черный' }, { name: 'Белый', gallery: ['strajp-1.jpg'] }]),
+    variants: priced([['120×200', 15850, 16150], ['140×200', 16150, 16750], ['160×200', 16750, 17800], ['180×200', 18700, 19250]], ['Черный', 'Белый']) },
   { id: 'strajp-5n', cat: 'odnoyarus', name: 'Кровать Страйп 5н', img: 'strajp-5n.jpg', demo: true,
-    colorOpt: colorOpt('Цвет металла', [{ name: 'Белый', gallery: ['strajp-5n.jpg'] }, { name: 'Черный' }]),
-    variants: variants(['120×200', '140×200', '160×200'], 17200, ['Белый', 'Черный']) },
+    colorOpt: colorOpt('Цвет металла', [{ name: 'Черный' }, { name: 'Белый', gallery: ['strajp-5n.jpg'] }]),
+    variants: priced([['120×200', 15600, 16100], ['140×200', 16100, 16500], ['160×200', 16500, 17600], ['180×200', 17600, 18500]], ['Черный', 'Белый']) },
   { id: 'kanzona', cat: 'odnoyarus', name: 'Кровать Канзона', img: 'kanzona.jpg', demo: true,
-    colorOpt: colorOpt('Цвет металла', [{ name: 'Белый', gallery: ['kanzona.jpg'] }, { name: 'Черный' }]),
-    variants: variants(['140×200', '160×200', '180×200'], 19800, ['Белый', 'Черный']) },
+    colorOpt: colorOpt('Цвет металла', [{ name: 'Черный' }, { name: 'Белый', gallery: ['kanzona.jpg'] }]),
+    variants: priced([['90×200', 14850, 15050], ['120×200', 16850, 17050], ['140×200', 17250, 17500], ['160×200', 17700, 17950], ['180×200', 19050, 19250]], ['Черный', 'Белый']) },
   { id: 'garda-2', cat: 'malajziya', name: 'Кровать Гарда 2', img: 'garda-2.jpg', demo: true,
-    colorOpt: colorOpt('Цвет металла', [{ name: 'Черный', gallery: ['garda-2.jpg'] }, { name: 'Белый' }]),
-    variants: variants(['140×200', '160×200'], 21400, ['Черный', 'Белый']) },
-  { id: 'ofeliya-9', cat: 'malajziya', name: 'Кровать Офелия 9', img: 'ofeliya-9.jpg', demo: true,
-    colorOpt: colorOpt('Цвет металла', [{ name: 'Белый', gallery: ['ofeliya-9.jpg'] }, { name: 'Черный' }]),
-    variants: variants(['140×200', '160×200'], 22900, ['Белый', 'Черный']) },
+    colorOpt: colorOpt('Цвет металла', [{ name: 'Белый' }, { name: 'Венге' }, { name: 'Орех' }]),
+    variants: priced([['90×200', 20450], ['120×200', 25200], ['140×200', 25500], ['160×200', 25900], ['180×200', 27000]], ['Белый', 'Венге', 'Орех']) },
+  { id: 'ofeliya-9', cat: 'malajziya', name: 'Кровать Офелия 9', img: 'ofeliya-9.jpg', demo: true, lead: 'Кровать серии «Малайзия». Цвет металла: венге.',
+    variants: priced([['90×200', 18510], ['120×200', 20110], ['140×200', 20790], ['160×200', 21040], ['180×200', 22440]]) },
   { id: 'aleks', cat: 'dvuhyarus', name: 'Кровать «Алекс» чердак', img: 'aleks.jpg', demo: true,
-    colorOpt: colorOpt('Цвет металла', [{ name: 'Серебро', gallery: ['aleks.jpg'] }, { name: 'Черный' }]),
-    variants: variants(['90×200'], 24500, ['Серебро', 'Черный']) },
+    colorOpt: colorOpt('Цвет металла', [{ name: 'Черный' }, { name: 'Белый' }, { name: 'Синий' }]),
+    variants: priced([['90×200', 18500]], ['Черный', 'Белый', 'Синий']) },
   { id: 'semejnaya', cat: 'dvuhyarus', name: 'Кровать двухъярусная «Семейная»', img: 'semejnaya.jpg', demo: true,
-    colorOpt: colorOpt('Цвет металла', [{ name: 'Черный', gallery: ['semejnaya.jpg'] }, { name: 'Белый' }]),
-    variants: variants(['90×200'], 27900, ['Черный', 'Белый']) },
+    colorOpt: colorOpt('Цвет металла', [{ name: 'Черный', gallery: ['semejnaya.jpg'] }, { name: 'Белый' }, { name: 'Серый' }]),
+    variants: priced([['90×190 (120×190)', 24000, 25000, 24400], ['90×190 (140×190)', 25000, 26000, 25400]], ['Черный', 'Белый', 'Серый']) },
   { id: 'evropejskaya', cat: 'dvuhyarus', name: 'Кровать «Европейская» чердак', img: 'evropejskaya.jpg', demo: true,
     colorOpt: colorOpt('Цвет металла', [{ name: 'Черный', gallery: ['evropejskaya.jpg'] }, { name: 'Белый' }]),
-    variants: variants(['90×200'], 23700, ['Черный', 'Белый']) },
-  { id: 'tandem-5', cat: 'transformery', name: 'Диван-кровать Тандем 5', hit: true, img: 'tandem-5.jpg', fit: 'contain', demo: true,
-    colorOpt: colorOpt('Цвет обивки', [{ name: 'Оливковый', gallery: ['tandem-5.jpg'] }, { name: 'Серый' }, { name: 'Бежевый' }]),
-    variants: variants(['100×200'], 48900, ['Оливковый', 'Серый', 'Бежевый']) },
-  { id: 'tandem-1', cat: 'transformery', name: 'Диван-кровать Тандем 1 с нырком', img: 'bruno.jpg', demo: true,
-    colorOpt: colorOpt('Цвет боковин', [{ name: 'Бежевый', gallery: ['bruno.jpg'] }, { name: 'Белый' }]),
-    variants: variants(['80×190', '90×200'], 29900, ['Бежевый', 'Белый']) },
-  { id: 'bruno', cat: 'transformery', name: 'Диван Бруно', img: 'tandem-6.jpg', demo: true,
-    colorOpt: colorOpt('Цвет обивки', [{ name: 'Серый', gallery: ['tandem-6.jpg'] }, { name: 'Графит' }, { name: 'Бежевый' }]),
-    variants: variants(['140×210'], 38600, ['Серый', 'Графит', 'Бежевый']) },
-  { id: 'mech-tandem-1', cat: 'mehanizmy', name: 'Механизм Тандем 1 с нырком', img: 'mech-tandem-1.jpg', demo: true, variants: variants(['80×190'], 8900) },
-  { id: 'mech-tandem-4', cat: 'mehanizmy', name: 'Механизм Тандем 4', img: 'mech-tandem-4.jpg', demo: true, variants: variants(['80×190'], 7400) },
-  { id: 'osnovanie', cat: 'osnovaniya', name: 'Ортопедическое основание разборное', img: 'osnovanie.jpg', demo: true, variants: variants(['140×200', '160×200'], 6900) },
+    variants: priced([['90×180', 17900], ['90×200', 17900], ['90×210', 20900]], ['Черный', 'Белый']) },
+  { id: 'tandem-5', cat: 'transformery', name: 'Диван-кровать Тандем 5', hit: true, img: 'tandem-5.jpg', fit: 'contain', demo: true, lead: 'Диван-трансформер в двухъярусную кровать за считанные минуты. Цвет металла: серый.',
+    variants: priced([['80×200', 80500]]) },
+  { id: 'tandem-1', cat: 'transformery', name: 'Диван-кровать Тандем 1 с нырком', img: 'bruno.jpg', demo: true, priceDemo: true, lead: 'Диван-кровать с выкатным местом. Цвет металла: серый. На сайте фабрики цена по запросу.',
+    variants: priced([['90×200', 29900]]) },
+  { id: 'bruno', cat: 'transformery', name: 'Диван Бруно', img: 'tandem-6.jpg', demo: true, lead: 'Диван с механизмом Lit. Ткань на выбор из каталогов.',
+    colorOpt: colorOpt('Ткань', [{ name: 'Teddy' }, { name: 'Nebby' }]),
+    variants: priced([['140×210', 52000]], ['Teddy', 'Nebby']) },
+  { id: 'mech-tandem-1', cat: 'mehanizmy', name: 'Механизм Тандем 1 с нырком', img: 'mech-tandem-1.jpg', demo: true, variants: priced([['90×200', 18500], ['90×190', 18500], ['80×200', 18500], ['80×190', 18500]]) },
+  { id: 'mech-tandem-4', cat: 'mehanizmy', name: 'Механизм Тандем 4', img: 'mech-tandem-4.jpg', demo: true, variants: priced([['80×190', 9550]]) },
+  { id: 'osnovanie', cat: 'osnovaniya', name: 'Ортопедическое основание разборное', img: 'osnovanie.jpg', demo: true, variants: priced([['90×200', 3450], ['120×200', 5780], ['140×200', 5900], ['160×200', 6050], ['180×200', 6370], ['200×200', 7080]]) },
 ];
 
 /* Остатки условные: в демо их нет в данных фабрики */
@@ -168,11 +162,11 @@ const ORDERS = [
   { id: 'NV-1040', date: ago(1, 12, 5), source: 'Ozon', status: 'shipped', name: 'Покупатель 2', phone: '+7 (900) 000-00-02', city: 'Самара', delivery: 'Ozon', pay: 'Ozon', paid: true, items: [{ id: 'strajp-1n', size: '140×200', color: 'Черный', qty: 1 }] },
   { id: 'NV-1039', date: ago(1, 16, 40), source: 'Сайт', status: 'assembling', name: 'Покупатель 3', phone: '+7 (900) 000-00-03', city: 'Казань', delivery: 'Самовывоз', pay: 'СБП', paid: true, items: [{ id: 'osnovanie', size: '160×200', color: '', qty: 2 }] },
   { id: 'NV-1038', date: ago(2, 11, 15), source: 'Ozon', status: 'done', name: 'Покупатель 4', phone: '+7 (900) 000-00-04', city: 'Москва', delivery: 'Ozon', pay: 'Ozon', paid: true, items: [{ id: 'strajp-1n', size: '120×200', color: 'Белый', qty: 1 }] },
-  { id: 'NV-1037', date: ago(3, 14, 30), source: 'Сайт', status: 'production', name: 'Покупатель 5', phone: '+7 (900) 000-00-05', city: 'Набережные Челны', delivery: 'Доставка', address: 'Набережные Челны, пр. Примерный, 5', pay: 'Картой', paid: true, items: [{ id: 'semejnaya', size: '90×200', color: 'Черный', qty: 1 }] },
+  { id: 'NV-1037', date: ago(3, 14, 30), source: 'Сайт', status: 'production', name: 'Покупатель 5', phone: '+7 (900) 000-00-05', city: 'Набережные Челны', delivery: 'Доставка', address: 'Набережные Челны, пр. Примерный, 5', pay: 'Картой', paid: true, items: [{ id: 'semejnaya', size: '90×190 (120×190)', color: 'Черный', qty: 1 }] },
   { id: 'NV-1036', date: ago(4, 10, 10), source: 'Сайт', status: 'done', name: 'Покупатель 6', phone: '+7 (900) 000-00-06', city: 'Казань', delivery: 'Самовывоз', pay: 'СБП', paid: true, items: [{ id: 'strajp-5n', size: '140×200', color: 'Белый', qty: 1 }] },
   { id: 'NV-1035', date: ago(5, 18, 45), source: 'Ozon', status: 'done', name: 'Покупатель 7', phone: '+7 (900) 000-00-07', city: 'Уфа', delivery: 'Ozon', pay: 'Ozon', paid: true, items: [{ id: 'mech-tandem-4', size: '80×190', color: '', qty: 3 }] },
-  { id: 'NV-1034', date: ago(7, 13, 25), source: 'Сайт', status: 'canceled', name: 'Покупатель 8', phone: '+7 (900) 000-00-08', city: 'Казань', delivery: 'Доставка', address: 'Казань, ул. Примерная, 8', pay: 'Картой', paid: false, items: [{ id: 'garda-2', size: '160×200', color: 'Черный', qty: 1 }] },
-  { id: 'NV-1033', date: ago(8, 9, 50), source: 'Сайт', status: 'done', name: 'Покупатель 9', phone: '+7 (900) 000-00-09', city: 'Чебоксары', delivery: 'Доставка', address: 'Чебоксары, ул. Примерная, 9', pay: 'Картой', paid: true, items: [{ id: 'tandem-5', size: '100×200', color: 'Оливковый', qty: 1 }] },
+  { id: 'NV-1034', date: ago(7, 13, 25), source: 'Сайт', status: 'canceled', name: 'Покупатель 8', phone: '+7 (900) 000-00-08', city: 'Казань', delivery: 'Доставка', address: 'Казань, ул. Примерная, 8', pay: 'Картой', paid: false, items: [{ id: 'garda-2', size: '160×200', color: 'Белый', qty: 1 }] },
+  { id: 'NV-1033', date: ago(8, 9, 50), source: 'Сайт', status: 'done', name: 'Покупатель 9', phone: '+7 (900) 000-00-09', city: 'Чебоксары', delivery: 'Доставка', address: 'Чебоксары, ул. Примерная, 9', pay: 'Картой', paid: true, items: [{ id: 'tandem-5', size: '80×200', color: '', qty: 1 }] },
   { id: 'NV-1032', date: ago(10, 15, 0), source: 'Ozon', status: 'done', name: 'Покупатель 10', phone: '+7 (900) 000-00-10', city: 'Екатеринбург', delivery: 'Ozon', pay: 'Ozon', paid: true, items: [{ id: 'strajp-1n', size: '160×200', color: 'Черный', qty: 2 }] },
   { id: 'NV-1031', date: ago(12, 12, 30), source: 'Сайт', status: 'done', name: 'Покупатель 11', phone: '+7 (900) 000-00-11', city: 'Казань', delivery: 'Самовывоз', pay: 'СБП', paid: true, items: [{ id: 'evropejskaya', size: '90×200', color: 'Черный', qty: 1 }] },
 ];

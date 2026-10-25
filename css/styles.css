@@ -522,3 +522,6 @@ textarea.code { font: 12px/1.5 var(--mono); background: var(--bg); }
 .thumb { width: 56px; height: 42px; flex: none; object-fit: cover; border-radius: var(--r); background: var(--stage); display: block; }
 .lowlist a { min-width: 0; }
 .lowlist span b, .olines span b { overflow-wrap: anywhere; }
+
+.szhead, .szrow { display: grid; gap: 8px; align-items: center; margin-bottom: 8px; }
+.szhead { font-size: 12px; color: var(--muted); margin-bottom: 4px; }

@@ -41,7 +41,7 @@ const PUB = (() => {
 
   function pcard(p, cls = '') {
     const hit = p.hit ? '<span class="tag">Хит</span>' : '';
-    const demo = p.demo ? '<span class="tag demo" style="left:auto;right:12px">демо-цена</span>' : '';
+    const demo = p.priceDemo ? '<span class="tag demo" style="left:auto;right:12px">цена условная</span>' : '';
     const stock = !inStock(p) ? '<span class="tag order">Под заказ</span>' : '';
     return `<a class="pcard ${cls}" href="#/p/${p.id}" data-reveal>
       <div class="pic">${hit}${stock}${demo}<img class="${p.fit || ''}" src="${img(p.img)}" alt="${esc(p.name)}" loading="lazy"></div>
@@ -150,7 +150,7 @@ const PUB = (() => {
     <div class="stats" data-reveal>${p.stats.map((s) => `<div><b data-count>${esc(s.value)}</b><em>${esc(s.unit)}</em><span>${esc(s.label)}</span></div>`).join('')}</div>
     ${p.specs.length ? `<h2 class="sec-title" style="margin:56px 0 0;font-size:28px" data-reveal>Характеристики</h2>
     <div class="spec-grid" data-reveal>${p.specs.map(([t, rows]) => `<div class="spec"><h3>${esc(t)}</h3><dl>${rows.map(([k, val]) => `<div><dt>${esc(k)}</dt><dd>${esc(val)}</dd></div>`).join('')}</dl></div>`).join('')}</div>` : ''}
-    ${p.demo ? '<p class="demo-note" style="margin-top:16px">Демо: цены и характеристики этой модели условные.</p>' : ''}
+    ${p.demo ? `<p class="demo-note" style="margin-top:16px">${p.priceDemo ? 'Цена условная: на сайте фабрики она по запросу. ' : 'Цены взяты с сайта фабрики. '}Характеристики и остаток этой модели условные.</p>` : ''}
     <h2 class="sec-title" style="margin:64px 0 24px;font-size:28px">Другие модели</h2>
     <div class="grid-cards" style="padding-bottom:96px">${more.map((x) => pcard(x)).join('')}</div></div>`;
   }
@@ -172,8 +172,10 @@ const PUB = (() => {
     }
     $('#pins').innerHTML = i === 0 ? pins.map((pn, k) => `<div class="pin ${pn.x > 55 ? 'flip' : ''}" style="left:${pn.x}%;top:${pn.y}%"><button class="dot" aria-label="${esc(pn.title)}">${k + 1}</button><div class="tip"><b>${esc(pn.title)}</b>${esc(pn.text)}</div></div>`).join('') : '';
     $$('#pins .dot').forEach((d) => d.addEventListener('click', () => d.parentElement.classList.toggle('open')));
+    const approx = opt && item && !item.gallery && !shown;
     $('#hint').innerHTML = missing
       ? `<i class="ph ph-info"></i> Фото пока в цвете «${esc(shown.name)}»`
+      : approx ? `<i class="ph ph-info"></i> Фото ориентировочное, цвет «${esc(item.name)}» может отличаться`
       : `<i class="ph ph-cursor-click"></i> ${pins.length && i === 0 ? 'Нажмите на точки' : 'Фото модели'}`;
     const th = $('#thumbs');
     th.style.display = gal.length > 1 ? '' : 'none';
