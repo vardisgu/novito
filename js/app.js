@@ -431,9 +431,9 @@
   function adminProducts() {
     if (!can('catalog')) return lock('Раздел «Товары» доступен менеджеру каталога и администратору.');
     return `<div class="adm-page"><div class="adm-head"><div><h1>Товары</h1><p class="muted">Нажмите на товар, чтобы открыть его карточку и править прямо в ней.</p></div><a class="btn primary" href="#/admin/products/new"><i class="ph ph-plus"></i>Добавить товар</a></div>
-      <div style="overflow-x:auto"><table class="table"><thead><tr><th></th><th>Название</th><th>Цена от</th><th>Сайт</th><th>Ozon</th><th>Telegram</th><th></th></tr></thead><tbody>
+      <div style="overflow-x:auto"><table class="table"><thead><tr><th></th><th>Название</th><th>Цена от</th><th>Сайт</th><th>Ozon</th><th></th></tr></thead><tbody>
       ${allProducts().map((p) => `<tr><td><img class="thumb" src="${img(p.img)}" alt=""></td><td><a href="#/admin/products/${p.id}"><b>${esc(p.name)}</b></a><div class="muted" style="font-size:13px">${CATS[p.cat].name}${p.channels.site === false ? ', скрыт с сайта' : ''}</div></td><td class="mono">${rub(fromPrice(p))}</td>
-        ${['site', 'ozon', 'tg'].map((k) => `<td><label class="sw" style="border:0;padding:0"><input type="checkbox" data-rowch="${p.id}:${k}" ${p.channels[k] ? 'checked' : ''}></label></td>`).join('')}
+        ${['site', 'ozon'].map((k) => `<td><label class="sw" style="border:0;padding:0"><input type="checkbox" data-rowch="${p.id}:${k}" ${p.channels[k] ? 'checked' : ''}></label></td>`).join('')}
         <td><a class="btn sm" href="#/admin/products/${p.id}"><i class="ph ph-pencil-simple"></i>Править</a></td></tr>`).join('')}
       </tbody></table></div></div>`;
   }
@@ -443,7 +443,7 @@
     return { isNew: true, cat: 'odnoyarus', name: 'Новый товар', lead: 'Короткое описание товара: чем он удобен покупателю.', gallery: [], colorGal: false,
       sizes: [{ size: '120×200', price: 0 }], colorLabel: 'Цвет металла', colors: ['Черный', 'Белый'],
       stats: [{ id: 's1', value: '100', unit: 'кг', label: 'нагрузка на место' }, { id: 's2', value: '1,5', unit: 'мм', label: 'толщина стали' }, { id: 's3', value: '1', unit: 'день', label: 'отгрузка из наличия' }, { id: 's4', value: '18', unit: 'мес', label: 'гарантия' }],
-      specs: [['Характеристики', [['Материал', 'сталь, порошковая окраска'], ['Гарантия', '18 месяцев']]]], channels: { site: true, ozon: true, tg: false } };
+      specs: [['Характеристики', [['Материал', 'сталь, порошковая окраска'], ['Гарантия', '18 месяцев']]]], channels: { site: true, ozon: true } };
   }
   function draftFrom(p) {
     const seen = new Map();
@@ -481,7 +481,7 @@
       <div class="spec-grid" id="specGrid"></div>
       <button class="btn sm ghost" id="addGroup" type="button" style="margin-top:12px">+ Группа характеристик</button>
       <aside class="publish" id="publish"><h4>${d.isNew ? 'Новый товар' : 'Публикация'}</h4><div class="changes" id="changes">Изменений нет</div>
-        <label class="sw">Показывать на сайте<input type="checkbox" data-ch="site"></label><label class="sw">Выгрузить в Ozon<input type="checkbox" data-ch="ozon"></label><label class="sw">Пост в Telegram-канал<input type="checkbox" data-ch="tg"></label>
+        <label class="sw">Показывать на сайте<input type="checkbox" data-ch="site"></label><label class="sw">Выгрузить в Ozon<input type="checkbox" data-ch="ozon"></label>
         <div class="err" id="edErr" role="alert"></div>
         <div style="display:flex;gap:8px"><button class="btn primary" id="saveP" style="flex:1">${d.isNew ? 'Создать товар' : 'Сохранить'}</button><a class="btn" href="#/admin/products">Отмена</a></div>
         ${!d.isNew && store.custom[id] ? '<button class="btn sm ghost" id="delP" type="button">Удалить товар</button>' : ''}</aside></div>`;
@@ -564,7 +564,7 @@
     }
     persist();
     if (persistFailed) { err.textContent = 'Браузер не смог сохранить: фото слишком тяжёлые. Уберите часть фото.'; return; }
-    const where = ['site', 'ozon', 'tg'].filter((k) => d.channels[k]).map((k) => ({ site: 'на сайте', ozon: 'в Ozon', tg: 'в Telegram' }[k]));
+    const where = ['site', 'ozon'].filter((k) => d.channels[k]).map((k) => ({ site: 'на сайте', ozon: 'в Ozon' }[k]));
     location.hash = '#/admin/products'; route();
     toast((d.isNew ? 'Товар создан. ' : 'Сохранено. ') + (where.length ? 'Появится ' + where.join(', ') : 'Нигде не показывается') + ' (демо)');
   }
@@ -660,7 +660,7 @@
     return `<div class="adm-page"><div class="adm-head"><div><h1>Подключения</h1><p class="muted">Откуда и куда уходят данные. Все значения в демо условные.</p></div></div><div class="cards3">
       <div class="int"><h3>Ozon<span class="st ${I.ozon ? 'on' : 'off'}">${I.ozon ? 'Подключено' : 'Выключено'}</span></h3><div class="kv">Client-Id: <b>31•••842</b></div><div class="kv">Последняя синхронизация: <b id="syncT">${esc(I.ozonSync)}</b></div>
         <label class="sw">Обновлять автоматически<input type="checkbox" data-int="autosync" ${I.autosync ? 'checked' : ''}></label><button class="btn sm" id="syncNow"><i class="ph ph-arrows-clockwise"></i>Синхронизировать сейчас</button></div>
-      <div class="int"><h3>Telegram<span class="st ${I.tg ? 'on' : 'off'}">${I.tg ? 'Подключено' : 'Выключено'}</span></h3><div class="kv">Канал: <b>@mebel_novita</b></div><div class="kv">Бот публикует статьи и новинки по кнопке «Опубликовать».</div></div>
+      <div class="int"><h3>Telegram<span class="st ${I.tg ? 'on' : 'off'}">${I.tg ? 'Подключено' : 'Выключено'}</span></h3><div class="kv">Канал: <b>@mebel_novita</b></div><div class="kv">Бот публикует статьи блога по кнопке «Опубликовать».</div></div>
       <div class="int"><h3>Онлайн-оплата<span class="st ${I.pay ? 'on' : 'off'}">${I.pay ? 'Подключено' : 'Не подключено'}</span></h3><div class="kv">Карты и СБП, чек по 54-ФЗ. Нужен договор эквайринга и онлайн-касса.</div><button class="btn sm primary" data-int-toggle="pay">${I.pay ? 'Отключить' : 'Подключить'}</button></div>
     </div></div>`;
   }
@@ -674,7 +674,7 @@
       const ch = { ...p.channels, [k]: i.checked };
       if (store.custom[id]) store.custom[id].channels = ch; else store.products[id] = { ...(store.products[id] || {}), channels: ch };
       persist();
-      toast(({ site: 'Сайт', ozon: 'Ozon', tg: 'Telegram' }[k]) + ': ' + (i.checked ? 'включено' : 'выключено') + ' для «' + p.name + '»');
+      toast(({ site: 'Сайт', ozon: 'Ozon' }[k]) + ': ' + (i.checked ? 'включено' : 'выключено') + ' для «' + p.name + '»');
     }));
     $$('[data-ostatus]').forEach((s) => s.addEventListener('change', () => { const o = store.orders.find((x) => x.id === s.dataset.ostatus); o.status = s.value; persist(); toast('Заказ ' + o.id + ': ' + STATUS[o.status] + '. Покупателю отправлено уведомление (демо)'); }));
     $$('[data-user]').forEach((s) => s.addEventListener('change', () => { const u = store.users.find((x) => x.id === +s.dataset.user); u.role = s.value; if (u.email === store.user) store.role = u.role; persist(); route(true); toast('Роль изменена: ' + u.email + ', ' + ROLES[u.role].label); }));
