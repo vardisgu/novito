@@ -461,7 +461,7 @@
     S.touched = new Set();
     const d = S.draft;
     return `<div class="adm-page wide"><div class="crumbs"><a href="#/admin/products">Товары</a><span>/</span><span>${d.isNew ? 'Новый товар' : esc(base.name)}</span></div>
-      <p class="edit-hint"><i class="ph ph-pencil-simple"></i>Так товар увидит покупатель. Нажмите на название, описание или цифры и правьте прямо здесь. Рамки показывают, что можно менять.</p>
+      <p class="edit-hint"><i class="ph ph-pencil-simple"></i>Так товар увидит покупатель. Нажмите на название, описание или цифры и правьте прямо здесь. Поля, которые можно менять, подчёркнуты.</p>
       <div class="pp">
         <div class="stage-wrap"><div class="stage" id="edStage"></div><div class="thumbs" id="edThumbs"></div>
           <div id="photoTools"></div></div>
@@ -483,7 +483,7 @@
       <aside class="publish" id="publish"><h4>${d.isNew ? 'Новый товар' : 'Публикация'}</h4><div class="changes" id="changes">Изменений нет</div>
         <label class="sw">Показывать на сайте<input type="checkbox" data-ch="site"></label><label class="sw">Выгрузить в Ozon<input type="checkbox" data-ch="ozon"></label>
         <div class="err" id="edErr" role="alert"></div>
-        <div style="display:flex;gap:8px"><button class="btn primary" id="saveP" style="flex:1">${d.isNew ? 'Создать товар' : 'Сохранить'}</button><a class="btn" href="#/admin/products">Отмена</a></div>
+        <div class="pub-actions"><button class="btn primary" id="saveP">${d.isNew ? 'Создать товар' : 'Сохранить'}</button><a class="btn" href="#/admin/products">Отмена</a></div>
         ${!d.isNew && store.custom[id] ? '<button class="btn sm ghost" id="delP" type="button">Удалить товар</button>' : ''}</aside></div>`;
   }
   const markDirty = (key) => { S.touched.add(key); const c = $('#changes'); if (c) c.innerHTML = `Изменено: <b>${S.touched.size}</b>`; };
