@@ -159,24 +159,25 @@
     if (!p) return `<div class="wrap lock"><h1>Товар не найден</h1><a class="btn" href="#/catalog">В каталог</a></div>`;
     if (!S.sel || !p.variants.some((v) => v.size === S.sel.size && v.color === S.sel.color)) S.sel = { size: p.variants[0].size, color: p.variants[0].color };
     const sizes = [...new Set(p.variants.map((v) => v.size))];
-    const colors = [...new Set(p.variants.map((v) => v.color))];
     const v = p.variants.find((x) => x.size === S.sel.size && x.color === S.sel.color) || p.variants[0];
-    const pins = p.pins.map((pn, i) => `<div class="pin ${pn.x > 55 ? 'flip' : ''}" style="left:${pn.x}%;top:${pn.y}%"><button class="dot" aria-label="${esc(pn.title)}">${i + 1}</button><div class="tip"><b>${esc(pn.title)}</b>${esc(pn.text)}</div></div>`).join('');
+    const colorBlock = p.colorOpt
+      ? `<div><span class="label">${esc(p.colorOpt.label)}: <b id="colorName" style="color:var(--ink)">${esc(S.sel.color)}</b></span><div class="chips" id="colors">${p.colorOpt.items.map((c) => `<button class="chip color ${c.name === S.sel.color ? 'on' : ''}" data-color="${esc(c.name)}" title="${esc(c.name)}"><i style="background:${c.swatch}"></i>${esc(c.name)}</button>`).join('')}</div></div>`
+      : '';
     const ch = p.channels;
     const st = (k, t) => `<span class="st ${ch[k] ? 'on' : 'off'}"><i class="ph ph-${ch[k] ? 'check-circle' : 'minus-circle'}"></i>${t}</span>`;
     return `<div class="wrap"><div class="crumbs"><a href="#/catalog">Каталог</a><span>/</span><a href="#/catalog/${p.cat}">${CATS[p.cat].name}</a><span>/</span><span>${esc(p.name)}</span></div>
     <div class="pp">
       <div class="stage-wrap">
-        <div class="stage" id="stage"><img class="main ${p.fit || ''}" id="mainImg" src="${IMG}${p.gallery[0]}" alt="${esc(p.name)}">
-          <div id="pins">${p.gallery.length > 1 || p.pins.length ? pins : ''}</div><span class="hint"><i class="ph ph-cursor-click"></i> ${p.pins.length ? 'Нажмите на точки' : 'Фото модели'}</span></div>
-        ${p.gallery.length > 1 ? `<div class="thumbs">${p.gallery.map((g, i) => `<button class="${i === 0 ? 'on' : ''}" data-img="${i}" aria-label="Фото ${i + 1}"><img src="${IMG}${g}" alt=""></button>`).join('')}</div>` : ''}
+        <div class="stage" id="stage"><img class="main ${p.fit || ''}" id="mainImg" alt="${esc(p.name)}">
+          <div id="pins"></div><span class="hint" id="hint"></span></div>
+        <div class="thumbs" id="thumbs"></div>
       </div>
       <div class="info">
         <div class="status">${st('site', 'Сайт')}${st('ozon', 'Ozon')}${st('tg', 'Telegram')}${p.demo ? '<span class="demo-note">демо-данные</span>' : ''}</div>
         <h1 data-f="name">${esc(p.name)}</h1>
         <p class="lead" data-f="lead">${esc(p.lead)}</p>
         <div><span class="label">Размер, см</span><div class="chips" id="sizes">${sizes.map((s) => `<button class="chip ${s === S.sel.size ? 'on' : ''}" data-size="${s}">${s}</button>`).join('')}</div></div>
-        <div><span class="label">Цвет металла</span><div class="chips" id="colors">${colors.map((c) => `<button class="chip color ${c === S.sel.color ? 'on' : ''}" data-color="${c}"><i style="background:${c === 'Белый' ? '#fff' : '#1b1f23'}"></i>${c}</button>`).join('')}</div></div>
+        ${colorBlock}
         <div class="pricebox"><span class="label" style="margin:0">Розничная цена</span>
           <div class="retail"><span data-f="price.retail" id="retail">${num(v.retail)}</span> ₽</div>
           <div class="optp">Опт: <span data-f="price.opt" id="opt">${num(v.opt)}</span> ₽ для зарегистрированных</div>
@@ -307,7 +308,33 @@
     const first = S.draft ? (S.draft.body[0] || '') : '';
     $('#tgprev').innerHTML = `<b>${esc(title)}</b><span>${esc(first.slice(0, 110))}${first.length > 110 ? '...' : ''}</span><a href="#">Читать на сайте</a>`;
   }
-  function selVariant(p) { return S.draft.variants.find((x) => x.size === S.sel.size && x.color === S.sel.color); }
+  function selVariant() { return S.draft.variants.find((x) => x.size === S.sel.size && x.color === S.sel.color); }
+
+  /* фото, миниатюры и точки зависят от выбранного цвета. Если фото в этом цвете нет, остаётся прежнее и об этом сказано в подписи. */
+  function renderStage(p) {
+    const opt = p.colorOpt;
+    const item = opt && opt.items.find((i) => i.name === S.sel.color);
+    const gal = (item && item.gallery) || p.gallery;
+    const pins = item ? (item.pins || []) : p.pins;
+    const shown = opt ? opt.items.find((i) => i.gallery) : null;
+    const missing = opt && item && !item.gallery && shown;
+    const img = $('#mainImg');
+    const i = Math.min(S.img, gal.length - 1);
+    const src = IMG + gal[i];
+    if (img.getAttribute('src') !== src) {
+      img.style.opacity = 0;
+      setTimeout(() => { img.src = src; img.style.opacity = 1; }, img.getAttribute('src') ? 160 : 0);
+    }
+    $('#pins').innerHTML = i === 0 ? pins.map((pn, k) => `<div class="pin ${pn.x > 55 ? 'flip' : ''}" style="left:${pn.x}%;top:${pn.y}%"><button class="dot" aria-label="${esc(pn.title)}">${k + 1}</button><div class="tip"><b>${esc(pn.title)}</b>${esc(pn.text)}</div></div>`).join('') : '';
+    $$('#pins .dot').forEach((d) => d.addEventListener('click', () => d.parentElement.classList.toggle('open')));
+    $('#hint').innerHTML = missing
+      ? `<i class="ph ph-info"></i> Фото пока в цвете «${esc(shown.name)}»`
+      : `<i class="ph ph-cursor-click"></i> ${pins.length && i === 0 ? 'Нажмите на точки' : 'Фото модели'}`;
+    const th = $('#thumbs');
+    th.style.display = gal.length > 1 ? '' : 'none';
+    th.innerHTML = gal.length > 1 ? gal.map((g, k) => `<button class="${k === i ? 'on' : ''}" data-img="${k}" aria-label="Фото ${k + 1}"><img src="${IMG}${g}" alt=""></button>`).join('') : '';
+    $$('[data-img]').forEach((b) => b.addEventListener('click', () => { S.img = +b.dataset.img; renderStage(p); }));
+  }
 
   function bind(a, b) {
     /* общие */
@@ -343,13 +370,13 @@
         $('#retail').textContent = num(v.retail); $('#opt').textContent = num(v.opt);
       };
       $$('[data-size]').forEach((e) => e.addEventListener('click', () => { S.sel.size = e.dataset.size; $$('[data-size]').forEach((x) => x.classList.toggle('on', x === e)); upd(); }));
-      $$('[data-color]').forEach((e) => e.addEventListener('click', () => { S.sel.color = e.dataset.color; $$('[data-color]').forEach((x) => x.classList.toggle('on', x === e)); upd(); }));
-      $$('[data-img]').forEach((e) => e.addEventListener('click', () => {
-        const i = +e.dataset.img; $$('[data-img]').forEach((x) => x.classList.toggle('on', x === e));
-        const img = $('#mainImg'); img.style.opacity = 0;
-        setTimeout(() => { img.src = IMG + p.gallery[i]; img.style.opacity = 1; $('#pins').style.display = i === 0 ? '' : 'none'; }, 180);
+      $$('[data-color]').forEach((e) => e.addEventListener('click', () => {
+        S.sel.color = e.dataset.color; S.img = 0;
+        $$('[data-color]').forEach((x) => x.classList.toggle('on', x === e));
+        const cn = $('#colorName'); if (cn) cn.textContent = S.sel.color;
+        upd(); renderStage(p);
       }));
-      $$('.pin .dot').forEach((d) => d.addEventListener('click', () => d.parentElement.classList.toggle('open')));
+      renderStage(p);
       const stage = $('#stage');
       if (!reduce && stage) {
         const img = $('#mainImg');

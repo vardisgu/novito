@@ -1,5 +1,7 @@
 /* Демо-данные. Реальные: названия моделей, фото и все числа у «Страйп 1н» (с metallstil.ru).
-   Остальные цены и характеристики условные, у таких товаров стоит пометка demo. */
+   Остальные цены и характеристики условные, у таких товаров стоит пометка demo.
+   colorOpt описывает, ЧТО именно выбирает покупатель: цвет металла, цвет обивки и т.д.
+   У механизмов и оснований цвета нет, поэтому у них colorOpt не задан и выбор не показывается. */
 
 const CATS = {
   odnoyarus: { name: 'Одноярусные кровати', img: 'strajp-1n.jpg' },
@@ -10,21 +12,47 @@ const CATS = {
   osnovaniya: { name: 'Ортопедические основания', img: 'osnovanie.jpg' },
 };
 
-const COLORS = ['Черный', 'Белый'];
+const SWATCH = {
+  'Черный': '#1b1f23', 'Белый': '#ffffff', 'Серебро': '#b9bec3', 'Серый': '#9aa0a6', 'Графит': '#4a4f55',
+  'Бежевый': '#d8cbb5', 'Оливковый': '#7d8761',
+};
 
-function variants(sizes, base, opt) {
+/* опция цвета: label подпись, items список цветов; gallery/pins у цвета, если есть своё фото */
+function colorOpt(label, items) {
+  return { label, items: items.map((i) => ({ swatch: SWATCH[i.name], ...i })) };
+}
+
+function variants(sizes, base, opt, colors) {
+  const cs = colors && colors.length ? colors : [''];
   const out = [];
-  sizes.forEach((s, i) => COLORS.forEach((c, j) => {
+  sizes.forEach((s, i) => cs.forEach((c, j) => {
     out.push({ size: s, color: c, opt: opt + i * 300 + j * 500, retail: base + i * 400 });
   }));
   return out;
 }
 
+const METAL = ['Черный', 'Белый'];
+
 const PRODUCTS = [
   {
-    id: 'strajp-1n', cat: 'odnoyarus', name: 'Кровать Страйп 1н', hit: true,
-    img: 'strajp-1n.jpg', gallery: ['strajp-1n.jpg', 'strajp-1n-2.jpg', 'strajp-1n-3.jpg', 'strajp-1n-4.jpg', 'strajp-1n-5.jpg', 'strajp-1n-6.jpg'],
+    id: 'strajp-1n', cat: 'odnoyarus', name: 'Кровать Страйп 1н', hit: true, img: 'strajp-1n-2.jpg',
     lead: 'Одноярусная металлическая кровать с волнообразным изголовьем. Любой серийный образец меняется под ваш запрос.',
+    colorOpt: colorOpt('Цвет металла', [
+      { name: 'Черный', gallery: ['strajp-1n-6.jpg', 'strajp-1n-2.jpg', 'strajp-1n-5.jpg'],
+        pins: [
+          { x: 30, y: 27, title: 'Изголовье', text: 'Высота 96 см, труба D38 мм' },
+          { x: 41, y: 79, title: 'Опоры', text: 'Металл, стойки D38 мм' },
+          { x: 62, y: 52, title: 'Основание', text: 'Труба 50×25 мм, берёзовые ламели' },
+          { x: 91, y: 63, title: 'Просвет', text: '28,5 см от пола до основания' },
+        ] },
+      { name: 'Белый', gallery: ['strajp-1n.jpg', 'strajp-1n-3.jpg', 'strajp-1n-4.jpg'],
+        pins: [
+          { x: 33, y: 29, title: 'Изголовье', text: 'Высота 96 см, труба D38 мм' },
+          { x: 47, y: 68, title: 'Опоры', text: 'Металл, стойки D38 мм' },
+          { x: 66, y: 55, title: 'Основание', text: 'Труба 50×25 мм, берёзовые ламели' },
+          { x: 12, y: 60, title: 'Просвет', text: '28,5 см от пола до основания' },
+        ] },
+    ]),
     variants: [
       { size: '120×200', color: 'Черный', opt: 11900, retail: 16550 },
       { size: '120×200', color: 'Белый', opt: 12400, retail: 16550 },
@@ -41,29 +69,45 @@ const PRODUCTS = [
       { id: 'clear', value: '28,5', unit: 'см', label: 'просвет от пола' },
       { id: 'warranty', value: '18', unit: 'мес', label: 'гарантия' },
     ],
-    pins: [
-      { x: 33, y: 29, title: 'Изголовье', text: 'Высота 96 см, труба D38 мм' },
-      { x: 47, y: 68, title: 'Опоры', text: 'Металл, стойки D38 мм' },
-      { x: 66, y: 55, title: 'Основание', text: 'Труба 50×25 мм, берёзовые ламели' },
-      { x: 12, y: 60, title: 'Просвет', text: '28,5 см от пола до основания' },
-    ],
     specs: [
       ['Размеры', [['Габариты, Ш×Д', '121,5-181,5 × 206,5 см'], ['Высота изножья', '38 см'], ['Высота матраса', '14-28 см']]],
       ['Конструкция', [['Основание', 'труба 50×25 мм, берёзовые ламели'], ['Стойки', 'труба D38 мм'], ['Ограничители матраса', '4 шт, металл'], ['Подъёмный механизм', 'нет']]],
       ['Упаковка', [['Места', '2 (рама и изголовье)'], ['Вес', '14-20 кг на место'], ['Ящик для белья', 'отдельно']]],
     ],
   },
-  { id: 'strajp-1', cat: 'odnoyarus', name: 'Кровать Страйп 1', img: 'strajp-1.jpg', demo: true, variants: variants(['120×200', '140×200', '160×200'], 15900, 11200) },
-  { id: 'strajp-5n', cat: 'odnoyarus', name: 'Кровать Страйп 5н', img: 'strajp-5n.jpg', demo: true, variants: variants(['120×200', '140×200', '160×200'], 17200, 12100) },
-  { id: 'kanzona', cat: 'odnoyarus', name: 'Кровать Канзона', img: 'kanzona.jpg', demo: true, variants: variants(['140×200', '160×200', '180×200'], 19800, 14200) },
-  { id: 'garda-2', cat: 'malajziya', name: 'Кровать Гарда 2', img: 'garda-2.jpg', demo: true, variants: variants(['140×200', '160×200'], 21400, 15100) },
-  { id: 'ofeliya-9', cat: 'malajziya', name: 'Кровать Офелия 9', img: 'ofeliya-9.jpg', demo: true, variants: variants(['140×200', '160×200'], 22900, 16300) },
-  { id: 'aleks', cat: 'dvuhyarus', name: 'Кровать «Алекс» чердак', img: 'aleks.jpg', demo: true, variants: variants(['90×200'], 24500, 17400) },
-  { id: 'semejnaya', cat: 'dvuhyarus', name: 'Кровать двухъярусная «Семейная»', img: 'semejnaya.jpg', demo: true, variants: variants(['90×200'], 27900, 19800) },
-  { id: 'evropejskaya', cat: 'dvuhyarus', name: 'Кровать «Европейская» чердак', img: 'evropejskaya.jpg', demo: true, variants: variants(['90×200'], 23700, 16900) },
-  { id: 'tandem-5', cat: 'transformery', name: 'Диван-кровать Тандем 5', hit: true, img: 'tandem-5.jpg', fit: 'contain', demo: true, variants: variants(['100×200'], 48900, 35400) },
-  { id: 'tandem-1', cat: 'transformery', name: 'Диван-кровать Тандем 1 с нырком', img: 'bruno.jpg', demo: true, variants: variants(['80×190', '90×200'], 29900, 21800) },
-  { id: 'bruno', cat: 'transformery', name: 'Диван Бруно', img: 'tandem-6.jpg', demo: true, variants: variants(['140×210'], 38600, 27900) },
+  { id: 'strajp-1', cat: 'odnoyarus', name: 'Кровать Страйп 1', img: 'strajp-1.jpg', demo: true,
+    colorOpt: colorOpt('Цвет металла', [{ name: 'Белый', gallery: ['strajp-1.jpg'] }, { name: 'Черный' }]),
+    variants: variants(['120×200', '140×200', '160×200'], 15900, 11200, ['Белый', 'Черный']) },
+  { id: 'strajp-5n', cat: 'odnoyarus', name: 'Кровать Страйп 5н', img: 'strajp-5n.jpg', demo: true,
+    colorOpt: colorOpt('Цвет металла', [{ name: 'Белый', gallery: ['strajp-5n.jpg'] }, { name: 'Черный' }]),
+    variants: variants(['120×200', '140×200', '160×200'], 17200, 12100, ['Белый', 'Черный']) },
+  { id: 'kanzona', cat: 'odnoyarus', name: 'Кровать Канзона', img: 'kanzona.jpg', demo: true,
+    colorOpt: colorOpt('Цвет металла', [{ name: 'Белый', gallery: ['kanzona.jpg'] }, { name: 'Черный' }]),
+    variants: variants(['140×200', '160×200', '180×200'], 19800, 14200, ['Белый', 'Черный']) },
+  { id: 'garda-2', cat: 'malajziya', name: 'Кровать Гарда 2', img: 'garda-2.jpg', demo: true,
+    colorOpt: colorOpt('Цвет металла', [{ name: 'Черный', gallery: ['garda-2.jpg'] }, { name: 'Белый' }]),
+    variants: variants(['140×200', '160×200'], 21400, 15100, ['Черный', 'Белый']) },
+  { id: 'ofeliya-9', cat: 'malajziya', name: 'Кровать Офелия 9', img: 'ofeliya-9.jpg', demo: true,
+    colorOpt: colorOpt('Цвет металла', [{ name: 'Белый', gallery: ['ofeliya-9.jpg'] }, { name: 'Черный' }]),
+    variants: variants(['140×200', '160×200'], 22900, 16300, ['Белый', 'Черный']) },
+  { id: 'aleks', cat: 'dvuhyarus', name: 'Кровать «Алекс» чердак', img: 'aleks.jpg', demo: true,
+    colorOpt: colorOpt('Цвет металла', [{ name: 'Серебро', gallery: ['aleks.jpg'] }, { name: 'Черный' }]),
+    variants: variants(['90×200'], 24500, 17400, ['Серебро', 'Черный']) },
+  { id: 'semejnaya', cat: 'dvuhyarus', name: 'Кровать двухъярусная «Семейная»', img: 'semejnaya.jpg', demo: true,
+    colorOpt: colorOpt('Цвет металла', [{ name: 'Черный', gallery: ['semejnaya.jpg'] }, { name: 'Белый' }]),
+    variants: variants(['90×200'], 27900, 19800, ['Черный', 'Белый']) },
+  { id: 'evropejskaya', cat: 'dvuhyarus', name: 'Кровать «Европейская» чердак', img: 'evropejskaya.jpg', demo: true,
+    colorOpt: colorOpt('Цвет металла', [{ name: 'Черный', gallery: ['evropejskaya.jpg'] }, { name: 'Белый' }]),
+    variants: variants(['90×200'], 23700, 16900, ['Черный', 'Белый']) },
+  { id: 'tandem-5', cat: 'transformery', name: 'Диван-кровать Тандем 5', hit: true, img: 'tandem-5.jpg', fit: 'contain', demo: true,
+    colorOpt: colorOpt('Цвет обивки', [{ name: 'Оливковый', gallery: ['tandem-5.jpg'] }, { name: 'Серый' }, { name: 'Бежевый' }]),
+    variants: variants(['100×200'], 48900, 35400, ['Оливковый', 'Серый', 'Бежевый']) },
+  { id: 'tandem-1', cat: 'transformery', name: 'Диван-кровать Тандем 1 с нырком', img: 'bruno.jpg', demo: true,
+    colorOpt: colorOpt('Цвет боковин', [{ name: 'Бежевый', gallery: ['bruno.jpg'] }, { name: 'Белый' }]),
+    variants: variants(['80×190', '90×200'], 29900, 21800, ['Бежевый', 'Белый']) },
+  { id: 'bruno', cat: 'transformery', name: 'Диван Бруно', img: 'tandem-6.jpg', demo: true,
+    colorOpt: colorOpt('Цвет обивки', [{ name: 'Серый', gallery: ['tandem-6.jpg'] }, { name: 'Графит' }, { name: 'Бежевый' }]),
+    variants: variants(['140×210'], 38600, 27900, ['Серый', 'Графит', 'Бежевый']) },
   { id: 'mech-tandem-1', cat: 'mehanizmy', name: 'Механизм Тандем 1 с нырком', img: 'mech-tandem-1.jpg', demo: true, variants: variants(['80×190'], 8900, 6200) },
   { id: 'mech-tandem-4', cat: 'mehanizmy', name: 'Механизм Тандем 4', img: 'mech-tandem-4.jpg', demo: true, variants: variants(['80×190'], 7400, 5200) },
   { id: 'osnovanie', cat: 'osnovaniya', name: 'Ортопедическое основание разборное', img: 'osnovanie.jpg', demo: true, variants: variants(['140×200', '160×200'], 6900, 4800) },
